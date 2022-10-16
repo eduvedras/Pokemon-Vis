@@ -43,13 +43,17 @@ function createParallelCoordinates(id) {
 
   // Draw the lines
   svg
-    .selectAll("myPath")
+    .selectAll("line.lineValue")
     .data(data)
     .join("path")
+    .attr("class", "lineValue itemValue")
     .attr("d",  path)
     .style("fill", "none")
     .style("stroke", "#69b3a2")
+    .style("stroke-width",1)
     .style("opacity", 0.5)
+    .on("mouseover", (event, d) => handleMouseOver(d))
+    .on("mouseleave", (event, d) => handleMouseLeave())
 
   // Draw the axis:
   svg.selectAll("myAxis")
@@ -110,7 +114,7 @@ function createBoxPlot(id) {
     // Show the X scale
     var x = d3.scaleBand()
       .rangeRound([ 0, width ])
-      .domain(["Psychic", "Fairy", "Water", "Colorless", "Fire", "Fighting", "Lightning", "Grass", "Metal", "Darkness", "Dragon"])
+      .domain(["Psychic", "Water", "Colorless", "Fire", "Fighting", "Lightning", "Grass", "Metal", "Darkness"])
       .padding(0.1)
       //.paddingInner(1)
       //.paddingOuter(.5)
@@ -120,7 +124,7 @@ function createBoxPlot(id) {
 
     // Show the Y scale
     var y = d3.scaleLinear()
-      .domain([0, 360])
+      .domain([0, 230])
       .range([height, 0])
     svg.append("g").call(d3.axisLeft(y))
 
@@ -153,7 +157,35 @@ function createBoxPlot(id) {
             return(y(d[1].q1)-y(d[1].q3));})
           .attr("width", function(){/*console.log(x.bandwidth());*/return x.bandwidth();} )
           .attr("stroke", "black")
-          .style("fill", "#69b3a2")
+          .style("fill", function(d){
+            if(d[0] == "Psychic"){
+              return "#4f0a5e";
+            }
+            if(d[0] == "Water"){
+              return "#10a3cc";
+            }
+            if(d[0] == "Colorless"){
+              return "#dfecf0";
+            }
+            if(d[0] == "Fire"){
+              return "#f03a0c";
+            }
+            if(d[0] == "Fighting"){
+              return "#541606";
+            }
+            if(d[0] == "Lightning"){
+              return "#eeff05";
+            }
+            if(d[0] == "Grass"){
+              return "#099909";
+            }
+            if(d[0] == "Metal"){
+              return "#3d403d";
+            }
+            if(d[0] == "Darkness"){
+              return "#111211";
+            }
+          })
 
        // Show the median
     svg
@@ -169,6 +201,7 @@ function createBoxPlot(id) {
         .style("width", 80)
       
       //console.log(maxlen);
+      //show outliers
       let i = 0;
       while(i < maxlen){
         svg
@@ -191,4 +224,26 @@ function createBoxPlot(id) {
       }
 
   });
+}
+
+
+function handleMouseOver(item) {
+  console.log("jjh");
+  d3.selectAll(".itemValue")
+    .filter(function (d, i) {
+      return d.name == item.name;
+    })
+    .style("stroke-width", 5)
+    .style("stroke", "red");
+}
+
+function handleMouseLeave() {
+  console.log("asd")
+  d3.selectAll(".itemValue")
+    .style("stroke-width", 1)
+    .style("stroke", "#69b3a2");
+  
+  /*d3.selectAll("circle.itemValue")
+    .style("stroke-width", 1)
+    .style("stroke", "#69b3a2");*/
 }
