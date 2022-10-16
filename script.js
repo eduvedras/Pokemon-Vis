@@ -4,7 +4,7 @@ const height = 400 - margin.top - margin.bottom;
 
 function init() {
   createParallelCoordinates("#vi1");
-  //createParallelSets("#vi2");
+  createBoxPlot("#vi2");
 }
 
 function createParallelCoordinates(id) {
@@ -69,347 +69,117 @@ function createParallelCoordinates(id) {
   });
 }
 
-function createParallelSets(id) {
+function createBoxPlot(id) {
+  //var iterator = -1;
   const svg = d3
     .select(id)
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
-    .attr("id", "gScatterPlot")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`);
+    .attr("transform",
+    `translate(${margin.left},${margin.top})`);
 
-  d3.json("data.json").then(function (data) {
-    keys = Object.keys(data[0]).filter(function(d) { return d != "hp" && d != "nationalPokedexNumbers" && d != "damage" && d != "energyCost"})
-    const x = d3
-      .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.budget)])
-      .range([0, width]);
-    svg
-      .append("g")
-      .attr("id", "gXAxis")
-      .attr("transform", `translate(0, ${height})`)
-      .call(d3.axisBottom(x).tickFormat((x) => x / 1000000 + "M"));
-
-    const y = d3.scaleLinear().domain([0, 10]).range([height, 0]);
-
-    const radiusScale = d3
-      .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.title.length)])
-      .range([4, 20]);
-
-    svg.append("g").attr("id", "gYAxis").call(d3.axisLeft(y));
-
-    svg
-      .selectAll("circle.circleValues")
-      .data(data, (d) => d.title)
-      .join("circle")
-      .attr("class", "circleValues itemValue")
-      .attr("cx", (d) => x(d.budget))
-      .attr("cy", (d) => y(d.rating))
-      .attr("r", (d) => radiusScale(d.title.length))
-      .style("fill", "steelblue")
-      .style("stroke", "black")
-      .on("mouseover", (event, d) => handleMouseOver(d))
-      .on("mouseleave", (event, d) => handleMouseLeave())
-      .append("title")
-      .text((d) => d.title);
-  });
-}
-
-function createLineChart(id) {
-  const svg = d3
-    .select(id)
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("id", "gLineChart")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-  d3.json("data.json").then(function (data) {
-    const x = d3
-      .scalePoint()
-      .domain(data.map((d) => d.oscar_year))
-      .range([width, 0]);
-    svg
-      .append("g")
-      .attr("id", "gXAxis")
-      .attr("transform", `translate(0, ${height})`)
-      .call(d3.axisBottom(x));
-
-    const y = d3
-      .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.budget)])
-      .range([height, 0]);
-    svg
-      .append("g")
-      .attr("id", "gYAxis")
-      .call(d3.axisLeft(y).tickFormat((x) => x / 1000000 + "M"));
-
-    svg
-      .append("path")
-      .datum(data)
-      .attr("class", "pathValue")
-      .attr("fill", "none")
-      .attr("stroke", "steelblue")
-      .attr("stroke-width", 1.5)
-      .attr(
-        "d",
-        d3
-          .line()
-          .x((d) => x(d.oscar_year))
-          .y((d) => y(d.budget))
-      );
-
-    const yMax = d3.max(data, (d) => d.budget);
-    const yMin = d3.min(data, (d) => d.budget);
-
-    svg
-      .selectAll("circle.circleValues")
-      .data(data, (d) => d.title)
-      .join("circle")
-      .attr("class", "circleValues itemValue")
-      .attr("cx", (d) => x(d.oscar_year))
-      .attr("cy", (d) => y(d.budget))
-      .attr("r", 4)
-      .style("fill", function (d, i) {
-        if (d.budget == yMax) return "lightgreen";
-        else if (d.budget == yMin) return "yellow";
-        else return "steelblue";
-      })
-      .style("stroke", "black")
-      .on("mouseover", (event, d) => handleMouseOver(d))
-      .on("mouseleave", (event, d) => handleMouseLeave())
-      .append("title")
-      .text((d) => d.title);
-  });
-}
-
-function updateBarChart(start, finish) {
-  d3.json("data.json").then(function (data) {
-    data = data.filter(function (elem) {
-      return start <= elem.oscar_year && elem.oscar_year <= finish;
-    });
-
-    const svg = d3.select("#gBarChart");
-
-    const x = d3.scaleLinear().domain([0, 10]).range([0, width]);
-    svg.select("#gXAxis").call(d3.axisBottom(x));
-
-    const y = d3
-      .scaleBand()
-      .domain(data.map((d) => d.oscar_year))
-      .range([0, height])
-      .padding(0.2);
-
-    const barFillConvertion = d3
-      .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.budget)])
-      .range([0, 1]);
-
-    svg.select("#gYAxis").call(d3.axisLeft(y));
-
-    svg
-      .selectAll("rect.rectValue")
-      .data(data, (d) => d.title)
-      .join(
-        (enter) => {
-          rects = enter
-            .append("rect")
-            .attr("class", "rectValue itemValue")
-            .attr("x", x(0))
-            .attr("y", (d) => y(d.oscar_year))
-            .attr("width", (d) => x(0))
-            .attr("height", y.bandwidth())
-            .attr("fill", function (d, i) {
-              return d3.interpolateBlues(barFillConvertion(d.budget));
-            })
-            .style("stroke", "black")
-            .on("mouseover", (event, d) => handleMouseOver(d))
-            .on("mouseleave", (event, d) => handleMouseLeave());
-          rects
-            .transition()
-            .duration(1000)
-            .attr("width", (d) => x(d.rating));
-          rects.append("title").text((d) => d.title);
-        },
-        (update) => {
-          update
-            .transition()
-            .duration(1000)
-            .attr("x", x(0))
-            .attr("y", (d) => y(d.oscar_year))
-            .attr("width", (d) => x(d.rating))
-            .attr("height", y.bandwidth())
-            .attr("fill", function (d, i) {
-              return d3.interpolateBlues(barFillConvertion(d.budget));
-            });
-        },
-        (exit) => {
-          exit.remove();
+  d3.csv("data.csv").then(function (data) {
+    // Compute quartiles, median, inter quantile range min and max --> these info are then used to draw the box.
+    var sumstat = d3.rollup(data, function(d) {
+        q1 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.25)
+        median = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.5)
+        q3 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.75)
+        interQuantileRange = q3 - q1
+        
+        //console.log(Array.from(d.map(function(g){ return g.hp;})));
+        min = d3.min(Array.from(d.map(function(g){ return g.hp;})), s => +s);//tranform string in ints
+        //console.log(min);
+        max = d3.max(Array.from(d.map(function(g){ return g.hp;})), s => +s);
+        if(max > q3 + 1.5 * interQuantileRange){
+          max = q3 + 1.5 * interQuantileRange;
         }
-      );
+        var data_sorted = d.map(function(g){return g.hp;}).sort(d3.ascending);
+        var outliars = data_sorted.filter((d) => d > max || d < min);
+        //console.log(max)
+        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliars: outliars})
+      }, d => d.types)
+    
+    console.log(sumstat)
+    // Show the X scale
+    var x = d3.scaleBand()
+      .rangeRound([ 0, width ])
+      .domain(["Psychic", "Fairy", "Water", "Colorless", "Fire", "Fighting", "Lightning", "Grass", "Metal", "Darkness", "Dragon"])
+      .padding(0.1)
+      //.paddingInner(1)
+      //.paddingOuter(.5)
+    svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x))
+
+    // Show the Y scale
+    var y = d3.scaleLinear()
+      .domain([0, 360])
+      .range([height, 0])
+    svg.append("g").call(d3.axisLeft(y))
+
+    // Show the main vertical line
+    svg
+      .selectAll("vertLines")
+      .data(sumstat)
+      .enter()
+      .append("line")
+        .attr("x1", function(d){return(x(d[0])+x.bandwidth()/2);})
+        .attr("x2", function(d){return(x(d[0])+x.bandwidth()/2);})
+        .attr("y1", function(d){/*console.log(d[1].min);*/return(y(d[1].min))})
+        .attr("y2", function(d){return(y(d[1].max))})
+        .attr("stroke", "black")
+        .style("width", 40)
+
+    // rectangle for the main box
+    //var boxWidth = x.bandwidth();
+    svg
+      .selectAll("boxes")
+      .data(sumstat)
+      .enter()
+      .append("rect")
+          .attr("x", function(d){return(x(d[0]))})
+          .attr("y", function(d){/*console.log(d[1]);*/return(y(d[1].q3))})
+          .attr("height", function(d){
+            /*console.log(y(d.q1));
+            console.log(y(d.q3));
+            console.log(y(d.q1)-y(d.q3));*/
+            return(y(d[1].q1)-y(d[1].q3));})
+          .attr("width", function(){/*console.log(x.bandwidth());*/return x.bandwidth();} )
+          .attr("stroke", "black")
+          .style("fill", "#69b3a2")
+
+       // Show the median
+    svg
+      .selectAll("medianLines")
+      .data(sumstat)
+      .enter()
+      .append("line")
+        .attr("x1", function(d){return(x(d[0])) })
+        .attr("x2", function(d){return(x(d[0])+x.bandwidth()) })
+        .attr("y1", function(d){return(y(d[1].median))})
+        .attr("y2", function(d){return(y(d[1].median))})
+        .attr("stroke", "black")
+        .style("width", 80)
+    /*
+    svg
+      .selectAll("circles")
+      .data(sumstat)
+      .enter()
+      .append("circle")
+        .attr("fill", "currentColor")
+        .attr("fill-opacity", 0.2)
+        .attr("stroke", "none")
+        .join("circle")
+          .attr("r", 2)
+          .attr("cx", function(d){return x(d[0])+x.bandwidth()/2 + (Math.random() - 0.5) * 4;})
+          .attr("cy", function(d){
+            iterator = iterator + 1;
+            if(iterator == d[1].outliars.length){
+              iterator = 0;
+            }
+            console.log(i);
+            return y(d[1].outliars[i]);
+          });*/
   });
-}
-
-function updateScatterPlot(start, finish) {
-  d3.json("data.json").then(function (data) {
-    data = data.filter(function (elem) {
-      return start <= elem.oscar_year && elem.oscar_year <= finish;
-    });
-
-    const svg = d3.select("#gScatterPlot");
-
-    const x = d3
-      .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.budget)])
-      .range([0, width]);
-    svg
-      .select("#gXAxis")
-      .call(d3.axisBottom(x).tickFormat((x) => x / 1000000 + "M"));
-
-    const y = d3.scaleLinear().domain([0, 10]).range([height, 0]);
-
-    const radiusScale = d3
-      .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.title.length)])
-      .range([4, 20]);
-
-    svg.select("gYAxis").call(d3.axisLeft(y));
-
-    svg
-      .selectAll("circle.circleValues")
-      .data(data, (d) => d.title)
-      .join(
-        (enter) => {
-          circles = enter
-            .append("circle")
-            .attr("class", "circleValues itemValue")
-            .attr("cx", (d) => x(d.budget))
-            .attr("cy", (d) => y(0))
-            .attr("r", (d) => radiusScale(d.title.length))
-            .style("fill", "steelblue")
-            .style("stroke", "black")
-            .on("mouseover", (event, d) => handleMouseOver(d))
-            .on("mouseleave", (event, d) => handleMouseLeave());
-          circles
-            .transition()
-            .duration(1000)
-            .attr("cy", (d) => y(d.rating));
-          circles.append("title").text((d) => d.title);
-        },
-        (update) => {
-          update
-            .transition()
-            .duration(1000)
-            .attr("cx", (d) => x(d.budget))
-            .attr("cy", (d) => y(d.rating))
-            .attr("r", (d) => radiusScale(d.title.length));
-        },
-        (exit) => {
-          exit.remove();
-        }
-      );
-  });
-}
-
-function updateLineChart(start, finish) {
-  d3.json("data.json").then(function (data) {
-    data = data.filter(function (elem) {
-      return start <= elem.oscar_year && elem.oscar_year <= finish;
-    });
-
-    const svg = d3.select("#gLineChart");
-
-    const x = d3
-      .scalePoint()
-      .domain(data.map((d) => d.oscar_year))
-      .range([width, 0]);
-    svg.select("#gXAxis").call(d3.axisBottom(x));
-
-    const y = d3
-      .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.budget)])
-      .range([height, 0]);
-    svg
-      .select("#gYAxis")
-      .call(d3.axisLeft(y).tickFormat((x) => x / 1000000 + "M"));
-
-    svg
-      .select("path.pathValue")
-      .datum(data)
-      .transition()
-      .duration(1000)
-      .attr(
-        "d",
-        d3
-          .line()
-          .x((d) => x(d.oscar_year))
-          .y((d) => y(d.budget))
-      );
-
-    const yMax = d3.max(data, (d) => d.budget);
-    const yMin = d3.min(data, (d) => d.budget);
-
-    svg
-      .selectAll("circle.circleValues")
-      .data(data, (d) => d.title)
-      .join(
-        (enter) => {
-          circles = enter
-            .append("circle")
-            .attr("class", "circleValues itemValue")
-            .attr("cx", (d) => x(d.oscar_year))
-            .attr("cy", (d) => y(0))
-            .attr("r", 4)
-            .style("fill", function (d, i) {
-              if (d.budget == yMax) return "lightgreen";
-              else if (d.budget == yMin) return "yellow";
-              else return "steelblue";
-            })
-            .style("stroke", "black")
-            .on("mouseover", (event, d) => handleMouseOver(d))
-            .on("mouseleave", (event, d) => handleMouseLeave());
-          circles
-            .transition()
-            .duration(1000)
-            .attr("cy", (d) => y(d.budget));
-          circles.append("title").text((d) => d.title);
-        },
-        (update) => {
-          update
-            .transition()
-            .duration(1000)
-            .attr("cx", (d) => x(d.oscar_year))
-            .attr("cy", (d) => y(d.budget))
-            .attr("r", 4)
-            .style("fill", function (d, i) {
-              if (d.budget == yMax) return "lightgreen";
-              else if (d.budget == yMin) return "yellow";
-              else return "steelblue";
-            });
-        },
-        (exit) => {
-          exit.remove();
-        }
-      );
-  });
-}
-
-function handleMouseOver(item) {
-  d3.selectAll(".itemValue")
-    .filter(function (d, i) {
-      return d.title == item.title;
-    })
-    .style("stroke-width", 5)
-    .style("stroke", "red");
-}
-
-function handleMouseLeave() {
-  d3.selectAll("rect.itemValue")
-    .style("stroke-width", 1)
-    .style("stroke", "black");
-
-  d3.selectAll("circle.itemValue")
-    .style("stroke-width", 1)
-    .style("stroke", "black");
 }
