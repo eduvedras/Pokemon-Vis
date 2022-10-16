@@ -81,6 +81,7 @@ function createBoxPlot(id) {
 
   d3.csv("data.csv").then(function (data) {
     // Compute quartiles, median, inter quantile range min and max --> these info are then used to draw the box.
+    var maxlen = 0
     var sumstat = d3.rollup(data, function(d) {
         q1 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.25)
         median = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.5)
@@ -96,11 +97,16 @@ function createBoxPlot(id) {
         }
         var data_sorted = d.map(function(g){return g.hp;}).sort(d3.ascending);
         var outliars = data_sorted.filter((d) => d > max || d < min);
+        if (outliars.length > maxlen){
+          maxlen = outliars.length;
+        }
         //console.log(max)
         return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliars: outliars})
       }, d => d.types)
     
-    console.log(sumstat)
+    var sumstatArr = Array.from(sumstat);
+    //console.log(sumstat)
+    //console.log(sumstatArr)
     // Show the X scale
     var x = d3.scaleBand()
       .rangeRound([ 0, width ])
@@ -161,25 +167,28 @@ function createBoxPlot(id) {
         .attr("y2", function(d){return(y(d[1].median))})
         .attr("stroke", "black")
         .style("width", 80)
-    /*
-    svg
-      .selectAll("circles")
-      .data(sumstat)
-      .enter()
-      .append("circle")
-        .attr("fill", "currentColor")
-        .attr("fill-opacity", 0.2)
-        .attr("stroke", "none")
-        .join("circle")
-          .attr("r", 2)
-          .attr("cx", function(d){return x(d[0])+x.bandwidth()/2 + (Math.random() - 0.5) * 4;})
-          .attr("cy", function(d){
-            iterator = iterator + 1;
-            if(iterator == d[1].outliars.length){
-              iterator = 0;
-            }
-            console.log(i);
-            return y(d[1].outliars[i]);
-          });*/
+      
+      //console.log(maxlen);
+      let i = 0;
+      while(i < maxlen){
+        svg
+          .selectAll("circles")
+          .data(sumstat)
+          .enter()
+          .append("circle")
+            .attr("fill", "currentColor")
+            .attr("fill-opacity", 0.2)
+            .attr("stroke", "none")
+            .join("circle")
+              .attr("r", 2)
+              .attr("cx", function(d){/*console.log(d);*/return x(d[0])+x.bandwidth()/2 + (Math.random() - 0.5) * 4;})
+              .attr("cy", function(d){/*console.log(y(d[1].outliars[j]),"----->",j,"--",d[1].outliars);*/
+              if(i >= d[1].outliars.length){
+                return y(-1000000);//to not draw undefined values
+              }
+              return y(d[1].outliars[i]);});
+        i = i + 1;
+      }
+
   });
 }
