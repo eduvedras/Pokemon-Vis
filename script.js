@@ -1,6 +1,6 @@
 const margin = { top: 20, right: 30, bottom: 40, left: 90 };
-const width = 600 - margin.left - margin.right;
-const height = 400 - margin.top - margin.bottom;
+const width = 700 - margin.left - margin.right;
+const height = 500 - margin.top - margin.bottom;
 
 function init() {
   createParallelCoordinates("#vi1");
@@ -18,7 +18,7 @@ function createParallelCoordinates(id) {
 
   d3.csv("data.csv").then(function (data) {
     // Extract the list of dimensions we want to keep in the plot. Here I keep all except the column called Species
-  dimensions = Object.keys(data[0]).filter(function(d) { return d != "name" && d != "types" && d != "weaknesses" && d != "rarity" 
+  dimensions = Object.keys(data[0]).filter(function(d) { return d != "id" && d != "name" && d != "types" && d != "weaknesses" && d != "rarity" 
                                                         && d != "resistances" && d != "evolution" && d!=""})
 
   // For each dimension, I build a linear scale. I store all in a y object
@@ -33,7 +33,7 @@ function createParallelCoordinates(id) {
   // Build the X scale -> it find the best position for each Y axis
   x = d3.scalePoint()
     .range([0, width])
-    .padding(1)
+    .padding(0.5)
     .domain(dimensions);
 
   // The path function take a row of the csv as input, and return x and y coordinates of the line to draw for this raw.
@@ -44,7 +44,7 @@ function createParallelCoordinates(id) {
   // Draw the lines
   svg
     .selectAll("line.lineValue")
-    .data(data)
+    .data(data, (d) => d.name)
     .join("path")
     .attr("class", "lineValue itemValue")
     .attr("d",  path)
@@ -54,6 +54,10 @@ function createParallelCoordinates(id) {
     .style("opacity", 0.5)
     .on("mouseover", (event, d) => handleMouseOver(d))
     .on("mouseleave", (event, d) => handleMouseLeave())
+    .append("title")
+    .text((d) => d.name);
+      
+    
 
   // Draw the axis:
   svg.selectAll("myAxis")
@@ -66,10 +70,10 @@ function createParallelCoordinates(id) {
     .each(function(d) { d3.select(this).call(d3.axisLeft().scale(y[d])); })
     // Add axis title
     .append("text")
-      .style("text-anchor", "middle")
-      .attr("y", -9)
-      .text(function(d) { return d; })
-      .style("fill", "black")
+    .style("text-anchor", "middle")
+    .attr("y", -9)
+    .text(function(d) { return d; })
+    .style("fill", "black")
   });
 }
 
@@ -108,7 +112,6 @@ function createBoxPlot(id) {
         return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliars: outliars})
       }, d => d.types)
     
-    var sumstatArr = Array.from(sumstat);
     //console.log(sumstat)
     //console.log(sumstatArr)
     // Show the X scale
@@ -121,12 +124,24 @@ function createBoxPlot(id) {
     svg.append("g")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x))
+      .append("text")
+      .style("text-anchor", "middle")
+      .attr("x", 595)
+      .text("types")
+      .style("fill", "black")
 
     // Show the Y scale
     var y = d3.scaleLinear()
       .domain([0, 230])
       .range([height, 0])
-    svg.append("g").call(d3.axisLeft(y))
+    svg
+      .append("g")
+      .call(d3.axisLeft(y))
+      .append("text")
+      .style("text-anchor", "middle")
+      .attr("y", -9)
+      .text("hp")
+      .style("fill", "black")
 
     // Show the main vertical line
     svg
@@ -144,18 +159,16 @@ function createBoxPlot(id) {
     // rectangle for the main box
     //var boxWidth = x.bandwidth();
     svg
-      .selectAll("boxes")
+      .selectAll("boxes.boxValue")
       .data(sumstat)
       .enter()
       .append("rect")
+          .attr("class", "boxValue bValue")
           .attr("x", function(d){return(x(d[0]))})
-          .attr("y", function(d){/*console.log(d[1]);*/return(y(d[1].q3))})
+          .attr("y", function(d){return(y(d[1].q3))})
           .attr("height", function(d){
-            /*console.log(y(d.q1));
-            console.log(y(d.q3));
-            console.log(y(d.q1)-y(d.q3));*/
             return(y(d[1].q1)-y(d[1].q3));})
-          .attr("width", function(){/*console.log(x.bandwidth());*/return x.bandwidth();} )
+          .attr("width", function(){return x.bandwidth();} )
           .attr("stroke", "black")
           .style("fill", function(d){
             if(d[0] == "Psychic"){
@@ -186,6 +199,11 @@ function createBoxPlot(id) {
               return "#111211";
             }
           })
+          .on("mouseover", (event, d) => handleMouseOver(d))
+          .on("mouseleave", (event, d) => handleMouseLeave())
+          .append("title")
+          .text(function(d) { return "median - " + d[1].median; })
+          
 
        // Show the median
     svg
@@ -223,27 +241,52 @@ function createBoxPlot(id) {
         i = i + 1;
       }
 
+      svg
+        .selectAll("point.pointValues")
+        .data(data)
+        .enter()
+        .append("circle")
+          .attr("class", "pointValues pValue")
+          .attr("cx", (d) => x(d.types) + x.bandwidth()/2)
+          .attr("cy", (d) => y(d.hp))
+          .attr("r", 4)
+          .attr("fill","none");
+          //.on("mouseover", (event, d) => handleMouseOver(d))
+          //.on("mouseleave", (event, d) => handleMouseLeave());
+
   });
 }
 
 
 function handleMouseOver(item) {
-  console.log("jjh");
   d3.selectAll(".itemValue")
     .filter(function (d, i) {
-      return d.name == item.name;
+      return d.id == item.id;
     })
     .style("stroke-width", 5)
     .style("stroke", "red");
+  
+  d3.selectAll(".pValue")
+    .filter(function (d, i) {
+      return d.id == item.id;
+    })
+    .style("stroke-width", 5)
+    .style("stroke", "red")
+    .style("fill", "red");
+
+  d3.selectAll(".bValue")
+    .filter(function (d, i) {
+      return d[0] == item[0];
+    })
 }
 
 function handleMouseLeave() {
-  console.log("asd")
   d3.selectAll(".itemValue")
     .style("stroke-width", 1)
     .style("stroke", "#69b3a2");
-  
-  /*d3.selectAll("circle.itemValue")
+
+  d3.selectAll(".pValue")
     .style("stroke-width", 1)
-    .style("stroke", "#69b3a2");*/
+    .style("stroke", "none")
+    .style("fill", "none");
 }

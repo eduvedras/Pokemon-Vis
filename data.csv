@@ -1,4 +1,4 @@
-,name,level,hp,types,weaknesses,rarity,resistances,damage,energyCost,evolution
+id,name,level,hp,types,weaknesses,rarity,resistances,damage,energyCost,evolution
 0,Alakazam,42,80.0,Psychic,Psychic,Rare Holo,None,30,3,Stage 2
 1,Blastoise,52,100.0,Water,Lightning,Rare Holo,None,40,3,Stage 2
 2,Chansey,55,120.0,Colorless,Fighting,Rare Holo,Psychic,80,4,Basic
