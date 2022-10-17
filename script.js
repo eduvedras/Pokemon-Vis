@@ -1,10 +1,40 @@
 const margin = { top: 20, right: 30, bottom: 40, left: 90 };
 const width = 700 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
+var arr = [];
 
 function init() {
   createParallelCoordinates("#vi1");
   createBoxPlot("#vi2");
+}
+
+function placeOutlier(data,stats,width,posX,posY){
+  const outlen = stats.get(data.types).outliers.length;
+  if(arr.includes("["+ posX+","+posY+"]")){
+    var auxPlace = 1;
+    var auxPlace2 = -1;
+    var pos = 0;
+    while(auxPlace<=outlen){
+      pos = posX + width/2 + auxPlace * 8;
+      if(!arr.includes("["+pos+","+posY+"]")){
+        break;
+      }
+      pos = posX + width/2 + auxPlace2 * 8;
+      if(!arr.includes("["+pos+","+posY+"]")){
+        break;
+      }
+      auxPlace = auxPlace +1;
+      auxPlace2 = auxPlace2 -1;
+    }
+    if(pos != 0){
+      arr.push("["+ pos + "," + posY + "]");
+      return pos;
+    }
+  }
+  else{
+    arr.push("["+ posX + "," + posY + "]");
+    return posX + width/2;
+  }
 }
 
 function createParallelCoordinates(id) {
@@ -102,13 +132,14 @@ function createBoxPlot(id) {
         if(max > q3 + 1.5 * interQuantileRange){
           max = q3 + 1.5 * interQuantileRange;
         }
-        /*var data_sorted = d.map(function(g){return g.hp;}).sort(d3.ascending);
+        var data_sorted = d.map(function(g){return g.hp;}).sort(d3.ascending);
         var outliars = data_sorted.filter((d) => d > max || d < min);
         if (outliars.length > maxlen){
           maxlen = outliars.length;
-        }*/
+        }
+        outliars.sort(function(a, b){return a - b});
         //console.log(max)
-        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max})
+        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars})
       }, d => d.types)
     
 
@@ -236,7 +267,7 @@ function createBoxPlot(id) {
         .enter()
         .append("circle")
           .attr("class", "outlierValues oValue")
-          .attr("cx", (d) => x(d.types) + x.bandwidth()/2 + (Math.random()-0.5) * 4)
+          .attr("cx", (d) => placeOutlier(d,sumstat,x.bandwidth(),x(d.types),d.hp))//x(d.types) + x.bandwidth()/2)
           .attr("cy", (d) => y(d.hp))
           .attr("r", 3)
           .attr("fill",function(d){
