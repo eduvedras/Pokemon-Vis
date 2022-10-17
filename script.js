@@ -18,7 +18,7 @@ function createParallelCoordinates(id) {
 
   d3.csv("data.csv").then(function (data) {
     // Extract the list of dimensions we want to keep in the plot. Here I keep all except the column called Species
-  dimensions = Object.keys(data[0]).filter(function(d) { return d != "id" && d != "name" && d != "types" && d != "weaknesses" && d != "rarity" 
+  dimensions = Object.keys(data[0]).filter(function(d) { return d != "id" && d != "outlier" && d != "name" && d != "types" && d != "weaknesses" && d != "rarity" 
                                                         && d != "resistances" && d != "evolution" && d!=""})
 
   // For each dimension, I build a linear scale. I store all in a y object
@@ -78,7 +78,6 @@ function createParallelCoordinates(id) {
 }
 
 function createBoxPlot(id) {
-  //var iterator = -1;
   const svg = d3
     .select(id)
     .attr("width", width + margin.left + margin.right)
@@ -103,15 +102,16 @@ function createBoxPlot(id) {
         if(max > q3 + 1.5 * interQuantileRange){
           max = q3 + 1.5 * interQuantileRange;
         }
-        var data_sorted = d.map(function(g){return g.hp;}).sort(d3.ascending);
+        /*var data_sorted = d.map(function(g){return g.hp;}).sort(d3.ascending);
         var outliars = data_sorted.filter((d) => d > max || d < min);
         if (outliars.length > maxlen){
           maxlen = outliars.length;
-        }
+        }*/
         //console.log(max)
-        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliars: outliars})
+        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max})
       }, d => d.types)
     
+
     //console.log(sumstat)
     //console.log(sumstatArr)
     // Show the X scale
@@ -218,28 +218,6 @@ function createBoxPlot(id) {
         .attr("stroke", "black")
         .style("width", 80)
       
-      //console.log(maxlen);
-      //show outliers
-      let i = 0;
-      while(i < maxlen){
-        svg
-          .selectAll("circles")
-          .data(sumstat)
-          .enter()
-          .append("circle")
-            .attr("fill", "currentColor")
-            .attr("fill-opacity", 0.2)
-            .attr("stroke", "none")
-            .join("circle")
-              .attr("r", 2)
-              .attr("cx", function(d){/*console.log(d);*/return x(d[0])+x.bandwidth()/2 + (Math.random() - 0.5) * 4;})
-              .attr("cy", function(d){/*console.log(y(d[1].outliars[j]),"----->",j,"--",d[1].outliars);*/
-              if(i >= d[1].outliars.length){
-                return y(-1000000);//to not draw undefined values
-              }
-              return y(d[1].outliars[i]);});
-        i = i + 1;
-      }
 
       svg
         .selectAll("point.pointValues")
@@ -251,9 +229,25 @@ function createBoxPlot(id) {
           .attr("cy", (d) => y(d.hp))
           .attr("r", 4)
           .attr("fill","none");
-          //.on("mouseover", (event, d) => handleMouseOver(d))
-          //.on("mouseleave", (event, d) => handleMouseLeave());
 
+      svg
+        .selectAll("outlier.outlierValues")
+        .data(data)
+        .enter()
+        .append("circle")
+          .attr("class", "outlierValues oValue")
+          .attr("cx", (d) => x(d.types) + x.bandwidth()/2 + (Math.random()-0.5) * 4)
+          .attr("cy", (d) => y(d.hp))
+          .attr("r", 3)
+          .attr("fill",function(d){
+            if(parseFloat(d.hp) > parseFloat(d.outlier)){
+              return "currentColor";
+            }
+            else{
+              return "none";
+            }
+          })
+          .attr("fill-opacity", 0.2);
   });
 }
 
@@ -289,4 +283,15 @@ function handleMouseLeave() {
     .style("stroke-width", 1)
     .style("stroke", "none")
     .style("fill", "none");
+  
+  d3.selectAll(".oValue")
+    .style("stroke", "none")
+    .style("fill", function(d){
+      if(parseFloat(d.hp) > parseFloat(d.outlier)){
+        return "currentColor";
+      }
+      else{
+        return "none";
+      }})
+    .attr("fill-opacity", 0.2);
 }
