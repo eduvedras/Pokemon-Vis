@@ -328,9 +328,28 @@ function handleMouseOver(item) {
   .filter(function (d, i) {
     return d.id == item.id;
   })
-  .style("stroke-width", 5)
-  .style("stroke", "red")
-  .style("fill", "red");
+  .style("stroke-width", function(d){if(parseFloat(d.hp) > parseFloat(d.outlier)){
+    return 5;
+  }
+  else{
+    return "none";
+  }})
+  .style("stroke", function(d){
+    if(parseFloat(d.hp) > parseFloat(d.outlier)){
+      return "red";
+    }
+    else{
+      return "none";
+    }
+  })
+  .style("fill", function(d){
+    if(parseFloat(d.hp) > parseFloat(d.outlier)){
+      return "red";
+    }
+    else{
+      return "none";
+    }
+  });
 
   d3.selectAll(".bValue")
     .filter(function (d, i) {
