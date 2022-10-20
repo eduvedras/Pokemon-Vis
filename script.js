@@ -3,6 +3,8 @@ const width = 700 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 const brushHeight = 40;
 var arr = [];
+var sMap = {};
+var flag = 0;
 
 function init() {
   createParallelCoordinates("#vi1");
@@ -85,11 +87,12 @@ function createParallelCoordinates(id) {
       .attr("fill", "none")
       .attr("stroke-width", 1.5)
       .attr("stroke-opacity", 0.4)
-      .selectAll("path")
+      .selectAll("line.lineValue")
       //.data(data.slice().sort((a, b) => d3.ascending(a[keyz], b[keyz])))
       .data(data)
       .join("path")
         //.attr("stroke", d => z(d[keyz]))
+        .attr("class", "lineValue itemValue")
         .attr("stroke", "blue")
         .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])));
 
@@ -116,16 +119,31 @@ function createParallelCoordinates(id) {
         .attr("stroke", "white"))
       .call(brush);
 
+  path.on("mouseover", (event, d) => handleMouseOver(d))
+  .on("mouseleave", (event, d) => handleMouseLeave())
+  .append("title")
+  .text((d) => d.name)
+
     const selections = new Map();
 
     function brushed({selection}, key) {
+      flag = 1;
       if (selection === null) selections.delete(key);
       else selections.set(key, selection.map(y.get(key).invert));
       const selected = [];
       path.each(function(d) {
         const active = Array.from(selections).every(([key, [max, min]]) => d[key] >= min && d[key] <= max);
         //d3.select(this).style("stroke", active ? z(d[keyz]) : deselectedColor);
-        d3.select(this).style("stroke", active ? "blue" : deselectedColor);
+        d3.select(this).style("stroke", function(){
+          if(active){
+            //console.log(this);
+            sMap[this.getAttribute('d')] = 1;
+             return "blue"; 
+          }
+          else{
+            sMap[this.getAttribute('d')] = 0;
+            return deselectedColor;
+          }});
         if (active) {
           d3.select(this).raise();
           selected.push(d);
@@ -391,7 +409,18 @@ function handleMouseOver(item) {
 function handleMouseLeave() {
   d3.selectAll(".itemValue")
     .style("stroke-width", 1)
-    .style("stroke", "#69b3a2");
+    .style("stroke",function(){
+      //console.log(this.getAttribute('d'));
+      if(sMap[this.getAttribute('d')] == 1){
+        return "blue";
+      }
+      else if(flag == 0){
+        return "blue";
+      }
+      else{
+        return "#ddd";
+      }
+    });
 
   d3.selectAll(".pValue")
     .style("stroke-width", 1)
