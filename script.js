@@ -4,6 +4,7 @@ const height = 500 - margin.top - margin.bottom;
 const brushHeight = 40;
 var arr = [];
 var sMap = {};
+var attr = [[90,0], [200,0], [170,0], [5.0, 0]];
 var flag = 0;
 
 function init() {
@@ -130,6 +131,32 @@ function createParallelCoordinates(id) {
       flag = 1;
       if (selection === null) selections.delete(key);
       else selections.set(key, selection.map(y.get(key).invert));
+      array = Array.from(selections);
+      aux = [];
+      i = 0;
+      for(attribute in array[0]){
+        aux.append([attribute, i]);
+        i++;
+      }
+      console.log(selections)
+      if ("level" in aux){
+        //console.log("1");
+        attr[0] = array[0][1]
+      }
+      if (array[0][0] == "hp"){
+        //console.log("2");
+        attr[1] = array[0][1]
+      }
+      if (array[0][0] == "damage"){
+        //console.log("3");
+        attr[2] = array[0][1]
+      }
+      if (array[0][0] == "energyCost"){
+        //console.log("4");
+        attr[3] = array[0][1]
+      }
+      //console.log(array[0][1][0]);
+      updateBoxPlot();
       const selected = [];
       path.each(function(d) {
         const active = Array.from(selections).every(([key, [max, min]]) => d[key] >= min && d[key] <= max);
@@ -151,7 +178,7 @@ function createParallelCoordinates(id) {
       });
       svg.property("value", selected).dispatch("input");
     }
-  
+    
     return svg.property("value", data).node();
   });
 }
@@ -162,6 +189,7 @@ function createBoxPlot(id) {
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
+    .attr("id", "gBoxChart")
     .attr("transform",
     `translate(${margin.left},${margin.top})`);
 
@@ -202,6 +230,7 @@ function createBoxPlot(id) {
       //.paddingInner(1)
       //.paddingOuter(.5)
     svg.append("g")
+      .attr("id", "gXAxis")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x))
       .append("text")
@@ -216,6 +245,7 @@ function createBoxPlot(id) {
       .range([height, 0])
     svg
       .append("g")
+      .attr("id", "gYAxis")
       .call(d3.axisLeft(y))
       .append("text")
       .style("text-anchor", "middle")
@@ -437,4 +467,186 @@ function handleMouseLeave() {
         return "none";
       }})
     .attr("fill-opacity", 0.2);
+}
+
+
+function updateBoxPlot(){
+  d3.csv("data.csv").then(function (data){
+    data = data.filter(function (elem) {
+      return attr[0][1] <= elem.level && elem.level <= attr[0][0] && attr[1][1] <= elem.hp && elem.hp <= attr[1][0] && attr[2][1] <= elem.damage && elem.damage <= attr[2][0]
+      && attr[3][1] <= elem.energyCost && elem.energyCost <= attr[3][0];
+    });
+
+    //console.log(attr);
+
+    var maxlen = 0
+    var sumstat = d3.rollup(data, function(d) {
+        q1 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.25)
+        median = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.5)
+        q3 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.75)
+        interQuantileRange = q3 - q1
+        
+        //console.log(Array.from(d.map(function(g){ return g.hp;})));
+        min = d3.min(Array.from(d.map(function(g){ return g.hp;})), s => +s);//tranform string in ints
+        //console.log(min);
+        max = d3.max(Array.from(d.map(function(g){ return g.hp;})), s => +s);
+        if(max > q3 + 1.5 * interQuantileRange){
+          max = q3 + 1.5 * interQuantileRange;
+        }
+        var data_sorted = d.map(function(g){return g.hp;}).sort(d3.ascending);
+        var outliars = data_sorted.filter((d) => d > max || d < min);
+        if (outliars.length > maxlen){
+          maxlen = outliars.length;
+        }
+        outliars.sort(function(a, b){return a - b});
+        //console.log(max)
+        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars})
+      }, d => d.types)
+
+
+    const svg = d3.select("#gBoxChart");
+    svg.selectAll("*").remove();
+    
+    var x = d3.scaleBand()
+      .rangeRound([ 0, width ])
+      .domain(["Psychic", "Water", "Colorless", "Fire", "Fighting", "Lightning", "Grass", "Metal", "Darkness"])
+      .padding(0.1)
+    
+    svg
+      .append("g")
+      .attr("id", "gXAxis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x))
+      .append("text")
+      .style("text-anchor", "middle")
+      .attr("x", 595)
+      .text("types")
+      .style("fill", "black")
+
+    var y = d3.scaleLinear()
+      .domain([0, 230])
+      .range([height, 0])
+    
+    svg
+      .append("g")
+      .attr("id", "gYAxis")
+      .call(d3.axisLeft(y))
+      .append("text")
+      .style("text-anchor", "middle")
+      .attr("y", -9)
+      .text("hp")
+      .style("fill", "black")
+
+    
+    svg
+      .selectAll("vertLines")
+      .data(sumstat)
+      .enter()
+      .append("line")
+        .attr("x1", function(d){return(x(d[0])+x.bandwidth()/2);})
+        .attr("x2", function(d){return(x(d[0])+x.bandwidth()/2);})
+        .attr("y1", function(d){/*console.log(d[1].min);*/return(y(d[1].min))})
+        .attr("y2", function(d){return(y(d[1].max))})
+        .attr("stroke", "black")
+        .style("width", 40)
+
+  // rectangle for the main box
+  //var boxWidth = x.bandwidth();
+  svg
+    .selectAll("boxes.boxValue")
+    .data(sumstat)
+    .enter()
+    .append("rect")
+        .attr("class", "boxValue bValue")
+        .attr("x", function(d){return(x(d[0]))})
+        .attr("y", function(d){return(y(d[1].q3))})
+        .attr("height", function(d){
+          return(y(d[1].q1)-y(d[1].q3));})
+        .attr("width", function(){return x.bandwidth();} )
+        .attr("stroke", "black")
+        .style("fill", function(d){
+          if(d[0] == "Psychic"){
+            return "#4f0a5e";
+          }
+          if(d[0] == "Water"){
+            return "#10a3cc";
+          }
+          if(d[0] == "Colorless"){
+            return "#dfecf0";
+          }
+          if(d[0] == "Fire"){
+            return "#f03a0c";
+          }
+          if(d[0] == "Fighting"){
+            return "#541606";
+          }
+          if(d[0] == "Lightning"){
+            return "#eeff05";
+          }
+          if(d[0] == "Grass"){
+            return "#099909";
+          }
+          if(d[0] == "Metal"){
+            return "#3d403d";
+          }
+          if(d[0] == "Darkness"){
+            return "#111211";
+          }
+        })
+        .on("mouseover", (event, d) => handleMouseOver(d))
+        .on("mouseleave", (event, d) => handleMouseLeave())
+        .append("title")
+        .text(function(d) { return "median - " + d[1].median; })
+        
+
+      // Show the median
+  svg
+    .selectAll("medianLines")
+    .data(sumstat)
+    .enter()
+    .append("line")
+      .attr("x1", function(d){return(x(d[0])) })
+      .attr("x2", function(d){return(x(d[0])+x.bandwidth()) })
+      .attr("y1", function(d){return(y(d[1].median))})
+      .attr("y2", function(d){return(y(d[1].median))})
+      .attr("stroke", "black")
+      .style("width", 80)
+    
+
+    svg
+      .selectAll("point.pointValues")
+      .data(data)
+      .enter()
+      .append("circle")
+        .attr("class", "pointValues pValue")
+        .attr("cx", (d) => x(d.types) + x.bandwidth()/2)
+        .attr("cy", (d) => y(d.hp))
+        .attr("r", 4)
+        .attr("fill","none");
+
+    svg
+      .selectAll("outlier.outlierValues")
+      .data(data)
+      .enter()
+      .append("circle")
+        .attr("class", "outlierValues oValue")
+        .attr("cx", (d) => placeOutlier(d,sumstat,x.bandwidth(),x(d.types),d.hp))//x(d.types) + x.bandwidth()/2)
+        .attr("cy", (d) => y(d.hp))
+        .attr("r", 3)
+        .attr("fill",function(d){
+          if(parseFloat(d.hp) > parseFloat(d.outlier)){
+            return "currentColor";
+          }
+          else{
+            return "none";
+          }
+        })
+        .attr("fill-opacity", 0.2)
+        .on("mouseover", (event, d) => handleMouseOver(d))
+        .on("mouseleave", (event, d) => handleMouseLeave())
+        .append("title")
+        .text((d) => d.name);
+
+    
+  });
 }
