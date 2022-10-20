@@ -52,24 +52,17 @@ function createParallelCoordinates(id) {
   keys = Object.keys(data[0]).filter(function(d) { return d != "id" && d != "outlier" && d != "name" && d != "types" && d != "weaknesses" && d != "rarity" 
                                                         && d != "resistances" && d != "evolution" && d!=""})
 
-  /*const brush = d3.brushY()
+  const brush = d3.brushY()
   .extent([
     [-(brushHeight/2), 0],
     [(brushHeight/2), height]
   ])
-  .on("start brush end", brushed);*/
-
-  const brush = d3.brushX()
-      .extent([
-        [margin.left, -(brushHeight / 2)],
-        [width - margin.right, brushHeight / 2]
-      ])
-      .on("start brush end", brushed);
+  .on("start brush end", brushed);
 
   line = d3.line()
   .defined(([, value]) => value != null)
-  .x(([key, value]) => x.get(key)(value))
-  .y(([key]) => y(key))
+  .y(([key, value]) => y.get(key)(value))
+  .x(([key]) => x(key))
 
   label = d => d.name
 
@@ -79,8 +72,13 @@ function createParallelCoordinates(id) {
   
     //height = keys.length * 120
   
-  x = new Map(Array.from(keys, key => [key, d3.scaleLinear().domain(d3.extent(data, d => +d[key])).range([0,width])]))
-  y = d3.scalePoint(keys, [margin.top, height - margin.bottom])
+  y = new Map(Array.from(keys, key => [key, d3.scaleLinear().domain(d3.extent(data, d => +d[key])).range([height,0])]))
+  //x = d3.scalePoint(keys, [margin.top, height - margin.bottom])
+
+  x = d3.scalePoint()
+    .range([0, width])
+    .padding(0.5)
+    .domain(keys);
 
 
   const path = svg.append("g")
@@ -103,12 +101,11 @@ function createParallelCoordinates(id) {
     .selectAll("g")
     .data(keys)
     .join("g")
-      .attr("transform", d => `translate(0,${y(d)})`)
-      .each(function(d) { d3.select(this).call(d3.axisBottom(x.get(d))); })
+      .attr("transform", d => `translate(${x(d)},0)`)
+      .each(function(d) { d3.select(this).call(d3.axisLeft(y.get(d))); })
       .call(g => g.append("text")
-        .attr("x", margin.left)
-        .attr("y", -6)
-        .attr("text-anchor", "start")
+        .style("text-anchor", "middle")
+        .attr("y", -9)
         .attr("fill", "currentColor")
         .text(d => d))
       .call(g => g.selectAll("text")
@@ -123,10 +120,10 @@ function createParallelCoordinates(id) {
 
     function brushed({selection}, key) {
       if (selection === null) selections.delete(key);
-      else selections.set(key, selection.map(x.get(key).invert));
+      else selections.set(key, selection.map(y.get(key).invert));
       const selected = [];
       path.each(function(d) {
-        const active = Array.from(selections).every(([key, [min, max]]) => d[key] >= min && d[key] <= max);
+        const active = Array.from(selections).every(([key, [max, min]]) => d[key] >= min && d[key] <= max);
         //d3.select(this).style("stroke", active ? z(d[keyz]) : deselectedColor);
         d3.select(this).style("stroke", active ? "blue" : deselectedColor);
         if (active) {
