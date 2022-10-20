@@ -1,6 +1,7 @@
 const margin = { top: 20, right: 30, bottom: 40, left: 90 };
 const width = 700 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
+const brushHeight = 40;
 var arr = [];
 
 function init() {
@@ -48,62 +49,95 @@ function createParallelCoordinates(id) {
 
   d3.csv("data.csv").then(function (data) {
     // Extract the list of dimensions we want to keep in the plot. Here I keep all except the column called Species
-  dimensions = Object.keys(data[0]).filter(function(d) { return d != "id" && d != "outlier" && d != "name" && d != "types" && d != "weaknesses" && d != "rarity" 
+  keys = Object.keys(data[0]).filter(function(d) { return d != "id" && d != "outlier" && d != "name" && d != "types" && d != "weaknesses" && d != "rarity" 
                                                         && d != "resistances" && d != "evolution" && d!=""})
 
-  // For each dimension, I build a linear scale. I store all in a y object
-  const y = {}
-  for (i in dimensions) {
-    dimension = dimensions[i]
-    y[dimension] = d3.scaleLinear()
-      .domain( d3.extent(data, function(d) { return +d[dimension]; }) )
-      .range([height, 0])
-  }
+  /*const brush = d3.brushY()
+  .extent([
+    [-(brushHeight/2), 0],
+    [(brushHeight/2), height]
+  ])
+  .on("start brush end", brushed);*/
 
-  // Build the X scale -> it find the best position for each Y axis
-  x = d3.scalePoint()
-    .range([0, width])
-    .padding(0.5)
-    .domain(dimensions);
+  const brush = d3.brushX()
+      .extent([
+        [margin.left, -(brushHeight / 2)],
+        [width - margin.right, brushHeight / 2]
+      ])
+      .on("start brush end", brushed);
 
-  // The path function take a row of the csv as input, and return x and y coordinates of the line to draw for this raw.
-  function path(d) {
-      return d3.line()(dimensions.map(function(p) { return [x(p), y[p](d[p])]; }));
-  }
+  line = d3.line()
+  .defined(([, value]) => value != null)
+  .x(([key, value]) => x.get(key)(value))
+  .y(([key]) => y(key))
 
-  // Draw the lines
-  svg
-    .selectAll("line.lineValue")
-    .data(data, (d) => d.name)
-    .join("path")
-    .attr("class", "lineValue itemValue")
-    .attr("d",  path)
-    .style("fill", "none")
-    .style("stroke", "#69b3a2")
-    .style("stroke-width",1)
-    .style("opacity", 0.5)
-    .on("mouseover", (event, d) => handleMouseOver(d))
-    .on("mouseleave", (event, d) => handleMouseLeave())
-    .append("title")
-    .text((d) => d.name);
-      
-    
+  label = d => d.name
 
-  // Draw the axis:
-  svg.selectAll("myAxis")
-    // For each dimension of the dataset I add a 'g' element:
-    .data(dimensions).enter()
-    .append("g")
-    // I translate this element to its right position on the x axis
-    .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
-    // And I build the axis with the call function
-    .each(function(d) { d3.select(this).call(d3.axisLeft().scale(y[d])); })
-    // Add axis title
-    .append("text")
-    .style("text-anchor", "middle")
-    .attr("y", -9)
-    .text(function(d) { return d; })
-    .style("fill", "black")
+  colors = d3.interpolateLab("blue", "blue")
+
+  deselectedColor = "#ddd"
+  
+    //height = keys.length * 120
+  
+  x = new Map(Array.from(keys, key => [key, d3.scaleLinear().domain(d3.extent(data, d => +d[key])).range([0,width])]))
+  y = d3.scalePoint(keys, [margin.top, height - margin.bottom])
+
+
+  const path = svg.append("g")
+      .attr("fill", "none")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-opacity", 0.4)
+      .selectAll("path")
+      //.data(data.slice().sort((a, b) => d3.ascending(a[keyz], b[keyz])))
+      .data(data)
+      .join("path")
+        //.attr("stroke", d => z(d[keyz]))
+        .attr("stroke", "blue")
+        .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])));
+
+
+  path.append("title")
+  .text(label);
+  
+  svg.append("g")
+    .selectAll("g")
+    .data(keys)
+    .join("g")
+      .attr("transform", d => `translate(0,${y(d)})`)
+      .each(function(d) { d3.select(this).call(d3.axisBottom(x.get(d))); })
+      .call(g => g.append("text")
+        .attr("x", margin.left)
+        .attr("y", -6)
+        .attr("text-anchor", "start")
+        .attr("fill", "currentColor")
+        .text(d => d))
+      .call(g => g.selectAll("text")
+        .clone(true).lower()
+        .attr("fill", "none")
+        .attr("stroke-width", 5)
+        .attr("stroke-linejoin", "round")
+        .attr("stroke", "white"))
+      .call(brush);
+
+    const selections = new Map();
+
+    function brushed({selection}, key) {
+      if (selection === null) selections.delete(key);
+      else selections.set(key, selection.map(x.get(key).invert));
+      const selected = [];
+      path.each(function(d) {
+        const active = Array.from(selections).every(([key, [min, max]]) => d[key] >= min && d[key] <= max);
+        //d3.select(this).style("stroke", active ? z(d[keyz]) : deselectedColor);
+        d3.select(this).style("stroke", active ? "blue" : deselectedColor);
+        if (active) {
+          d3.select(this).raise();
+          selected.push(d);
+        }
+      });
+      svg.property("value", selected).dispatch("input");
+    }
+  
+    return svg.property("value", data).node();
   });
 }
 
