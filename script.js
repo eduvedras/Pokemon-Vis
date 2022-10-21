@@ -9,6 +9,7 @@ var flag = 0;
 var overColor = "red";
 var normalColor = "#22BAC1";
 var deselectedColor = "#ddd";
+var sumstat;
 
 function init() {
   createBoxPlot("#vi1");
@@ -51,16 +52,15 @@ function createParallelCoordinates(id) {
     .select(id)
     .attr("width", widthC + margin.left + margin.right)
     .attr("height", heightC + margin.top + margin.bottom)
-    //.attr("viewbox", [0,800,width,height])
     .append("g")
     .attr("transform",
     `translate(${margin.left},${margin.top})`);
 
   d3.csv("data.csv").then(function (data) {
-    // Extract the list of dimensions we want to keep in the plot. Here I keep all except the column called Species
   keys = Object.keys(data[0]).filter(function(d) { return d != "id" && d != "outlier" && d != "name" && d != "types" && d != "weaknesses" && d != "rarity" 
                                                         && d != "resistances" && d != "evolution" && d!=""})
-
+  
+  //Create a brush
   const brush = d3.brushY()
   .extent([
     [-(brushHeight/2), 0],
@@ -77,10 +77,8 @@ function createParallelCoordinates(id) {
 
   colors = d3.interpolateLab(normalColor, normalColor)
   
-    //height = keys.length * 120
   
   y = new Map(Array.from(keys, key => [key, d3.scaleLinear().domain(d3.extent(data, d => +d[key])).range([heightC,0])]))
-  //x = d3.scalePoint(keys, [margin.top, height - margin.bottom])
 
   x = d3.scalePoint()
     .range([0, widthC])
@@ -93,10 +91,8 @@ function createParallelCoordinates(id) {
       .attr("stroke-width", 1)
       .attr("stroke-opacity", 0.4)
       .selectAll("line.lineValue")
-      //.data(data.slice().sort((a, b) => d3.ascending(a[keyz], b[keyz])))
       .data(data)
       .join("path")
-        //.attr("stroke", d => z(d[keyz]))
         .attr("class", "lineValue itemValue")
         .attr("stroke", normalColor)
         .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])));
@@ -139,37 +135,32 @@ function createParallelCoordinates(id) {
         updateBoxPlot();
       }
       else selections.set(key, selection.map(y.get(key).invert));
-      selarray = Array.from(selections);
-      //console.log(selections);
+
       for (let [key1, value1] of selections) {
         if (key1 == "level"){
-          //console.log("1");
           attr[0] = value1
         }
         if (key1 == "hp"){
-          //console.log("2");
           attr[1] = value1
         }
         if (key1 == "damage"){
-          //console.log("3");
           attr[2] = value1
         }
         if (key1 == "energyCost"){
-          //console.log("4");
           attr[3] = value1
         }
-        //console.log(key1 + " = " + value1[0]);
       }
       updateBoxPlot();
+
+      selarray = Array.from(selections);
       const selected = [];
+
       path.each(function(d) {
         const active = selarray.every(([key, [max, min]]) => d[key] >= min && d[key] <= max);
-        //d3.select(this).style("stroke", active ? z(d[keyz]) : deselectedColor);
         d3.select(this).style("stroke", function(){
           if(active){
-            //console.log(this);
             sMap[this.getAttribute('d')] = 1;
-             return normalColor; 
+            return normalColor; 
           }
           else{
             sMap[this.getAttribute('d')] = 0;
@@ -200,15 +191,15 @@ function createBoxPlot(id) {
   d3.csv("data.csv").then(function (data) {
     // Compute quartiles, median, inter quantile range min and max --> these info are then used to draw the box.
     var maxlen = 0
-    var sumstat = d3.rollup(data, function(d) {
+    sumstat = d3.rollup(data, function(d) {
         q1 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.25)
         median = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.5)
         q3 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.75)
         interQuantileRange = q3 - q1
         
-        //console.log(Array.from(d.map(function(g){ return g.hp;})));
+        
         min = d3.min(Array.from(d.map(function(g){ return g.hp;})), s => +s);//tranform string in ints
-        //console.log(min);
+        
         max = d3.max(Array.from(d.map(function(g){ return g.hp;})), s => +s);
         if(max > q3 + 1.5 * interQuantileRange){
           max = q3 + 1.5 * interQuantileRange;
@@ -219,27 +210,23 @@ function createBoxPlot(id) {
           maxlen = outliars.length;
         }
         outliars.sort(function(a, b){return a - b});
-        //console.log(max)
+
         return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars})
       }, d => d.types)
     
-
-    //console.log(sumstat)
-    //console.log(sumstatArr)
     // Show the X scale
     var x = d3.scaleBand()
       .rangeRound([ 0, width ])
       .domain(["Psychic", "Water", "Colorless", "Fire", "Fighting", "Lightning", "Grass", "Metal", "Darkness"])
       .padding(0.1)
-      //.paddingInner(1)
-      //.paddingOuter(.5)
+      
     svg.append("g")
       .attr("id", "gXAxis")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x))
       .append("text")
       .style("text-anchor", "middle")
-      .attr("x", 595)
+      .attr("x", 495)
       .text("types")
       .style("fill", "black")
 
@@ -265,13 +252,12 @@ function createBoxPlot(id) {
       .append("line")
         .attr("x1", function(d){return(x(d[0])+x.bandwidth()/2);})
         .attr("x2", function(d){return(x(d[0])+x.bandwidth()/2);})
-        .attr("y1", function(d){/*console.log(d[1].min);*/return(y(d[1].min))})
+        .attr("y1", function(d){return(y(d[1].min))})
         .attr("y2", function(d){return(y(d[1].max))})
         .attr("stroke", "black")
         .style("width", 40)
 
     // rectangle for the main box
-    //var boxWidth = x.bandwidth();
     svg
       .selectAll("boxes.boxValue")
       .data(sumstat)
@@ -280,8 +266,7 @@ function createBoxPlot(id) {
           .attr("class", "boxValue bValue")
           .attr("x", function(d){return(x(d[0]))})
           .attr("y", function(d){return(y(d[1].q3))})
-          .attr("height", function(d){
-            return(y(d[1].q1)-y(d[1].q3));})
+          .attr("height", function(d){return(y(d[1].q1)-y(d[1].q3));})
           .attr("width", function(){return x.bandwidth();} )
           .attr("stroke", "black")
           .style("fill", function(d){
@@ -350,11 +335,11 @@ function createBoxPlot(id) {
         .enter()
         .append("circle")
           .attr("class", "outlierValues oValue")
-          .attr("cx", (d) => placeOutlier(d,sumstat,x.bandwidth(),x(d.types),d.hp))//x(d.types) + x.bandwidth()/2)
+          .attr("cx", (d) => placeOutlier(d,sumstat,x.bandwidth(),x(d.types),d.hp))
           .attr("cy", (d) => y(d.hp))
           .attr("r", 3)
           .attr("fill",function(d){
-            if(parseFloat(d.hp) > parseFloat(d.outlier)){
+            if(parseFloat(d.hp) >= parseFloat(sumstat.get(d.types)["outliers"][0])){
               return "currentColor";
             }
             else{
@@ -382,7 +367,7 @@ function handleMouseOver(item) {
       return d.id == item.id;
     })
     .style("stroke-width",function(d){
-      if(parseFloat(d.hp) > parseFloat(d.outlier)){
+      if(parseFloat(d.hp) >= parseFloat(sumstat.get(d.types)["outliers"][0])){
         return "none";
       }
       else{
@@ -390,7 +375,7 @@ function handleMouseOver(item) {
       }
     })
     .style("stroke",function(d){
-      if(parseFloat(d.hp) > parseFloat(d.outlier)){
+      if(parseFloat(d.hp) >= parseFloat(sumstat.get(d.types)["outliers"][0])){
         return "none";
       }
       else{
@@ -398,7 +383,7 @@ function handleMouseOver(item) {
       }
     })
     .style("fill",function(d){
-      if(parseFloat(d.hp) > parseFloat(d.outlier)){
+      if(parseFloat(d.hp) >= parseFloat(sumstat.get(d.types)["outliers"][0])){
         return "none";
       }
       else{
@@ -410,14 +395,14 @@ function handleMouseOver(item) {
   .filter(function (d, i) {
     return d.id == item.id;
   })
-  .style("stroke-width", function(d){if(parseFloat(d.hp) > parseFloat(d.outlier)){
+  .style("stroke-width", function(d){if(parseFloat(d.hp) >= parseFloat(sumstat.get(d.types)["outliers"][0])){
     return 5;
   }
   else{
     return "none";
   }})
   .style("stroke", function(d){
-    if(parseFloat(d.hp) > parseFloat(d.outlier)){
+    if(parseFloat(d.hp) >= parseFloat(sumstat.get(d.types)["outliers"][0])){
       return overColor;
     }
     else{
@@ -425,7 +410,7 @@ function handleMouseOver(item) {
     }
   })
   .style("fill", function(d){
-    if(parseFloat(d.hp) > parseFloat(d.outlier)){
+    if(parseFloat(d.hp) >= parseFloat(sumstat.get(d.types)["outliers"][0])){
       return overColor;
     }
     else{
@@ -462,7 +447,7 @@ function handleMouseLeave() {
   d3.selectAll(".oValue")
     .style("stroke", "none")
     .style("fill", function(d){
-      if(parseFloat(d.hp) > parseFloat(d.outlier)){
+      if(parseFloat(d.hp) >= parseFloat(sumstat.get(d.types)["outliers"][0])){
         return "currentColor";
       }
       else{
@@ -480,15 +465,14 @@ function updateBoxPlot(){
     });
 
     var maxlen = 0
-    var sumstat = d3.rollup(data, function(d) {
+    sumstat = d3.rollup(data, function(d) {
         q1 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.25)
         median = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.5)
         q3 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.75)
         interQuantileRange = q3 - q1
         
-        //console.log(Array.from(d.map(function(g){ return g.hp;})));
         min = d3.min(Array.from(d.map(function(g){ return g.hp;})), s => +s);//tranform string in ints
-        //console.log(min);
+    
         max = d3.max(Array.from(d.map(function(g){ return g.hp;})), s => +s);
         if(max > q3 + 1.5 * interQuantileRange){
           max = q3 + 1.5 * interQuantileRange;
@@ -499,11 +483,10 @@ function updateBoxPlot(){
           maxlen = outliars.length;
         }
         outliars.sort(function(a, b){return a - b});
-        //console.log(max)
+        
         return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars})
       }, d => d.types)
-    //console.log(sumstat.get("Water"));
-    //console.log(sumstat.get("Water")["outliers"][0]);
+    
     const svg = d3.select("#gBoxChart");
     svg.selectAll("*").remove();
     
@@ -519,7 +502,7 @@ function updateBoxPlot(){
       .call(d3.axisBottom(x))
       .append("text")
       .style("text-anchor", "middle")
-      .attr("x", 595)
+      .attr("x", 495)
       .text("types")
       .style("fill", "black")
 
@@ -545,13 +528,12 @@ function updateBoxPlot(){
       .append("line")
         .attr("x1", function(d){return(x(d[0])+x.bandwidth()/2);})
         .attr("x2", function(d){return(x(d[0])+x.bandwidth()/2);})
-        .attr("y1", function(d){/*console.log(d[1].min);*/return(y(d[1].min))})
+        .attr("y1", function(d){return(y(d[1].min))})
         .attr("y2", function(d){return(y(d[1].max))})
         .attr("stroke", "black")
         .style("width", 40)
 
   // rectangle for the main box
-  //var boxWidth = x.bandwidth();
   svg
     .selectAll("boxes.boxValue")
     .data(sumstat)
@@ -631,11 +613,11 @@ function updateBoxPlot(){
       .enter()
       .append("circle")
         .attr("class", "outlierValues oValue")
-        .attr("cx", (d) => placeOutlier(d,sumstat,x.bandwidth(),x(d.types),d.hp))//x(d.types) + x.bandwidth()/2)
+        .attr("cx", (d) => placeOutlier(d,sumstat,x.bandwidth(),x(d.types),d.hp))
         .attr("cy", (d) => y(d.hp))
         .attr("r", 3)
         .attr("fill",function(d){
-          if(parseFloat(d.hp) > parseFloat(sumstat.get(d.types)["outliers"][0])){
+          if(parseFloat(d.hp) >= parseFloat(sumstat.get(d.types)["outliers"][0])){
             return "currentColor";
           }
           else{
