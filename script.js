@@ -9,6 +9,7 @@ var flag = 0;
 var overColor = "red";
 var normalColor = "#22BAC1";
 var deselectedColor = "#ddd";
+var averageColor = "green";
 var sumstat;
 
 function init() {
@@ -250,6 +251,7 @@ function createBoxPlot(id) {
       .data(sumstat)
       .enter()
       .append("line")
+        .attr("class", "boxValue bValue")
         .attr("x1", function(d){return(x(d[0])+x.bandwidth()/2);})
         .attr("x2", function(d){return(x(d[0])+x.bandwidth()/2);})
         .attr("y1", function(d){return(y(d[1].min))})
@@ -351,7 +353,46 @@ function createBoxPlot(id) {
           .on("mouseleave", (event, d) => handleMouseLeave())
           .append("title")
           .text((d) => d.name);
+
+      var average = 0;
+      var i = 0;
+      while(i < data.length){
+        average = average + parseFloat(data[i].hp);
+        i = i + 1;
+      }
+      average = average / i;
+  
+      //show the average hp
+      svg
+        .selectAll("average.averageValue")
+        .data(data)
+        .enter()
+        .append("line")
+          .attr("class", "averageValue aValue")
+          .attr("x1", function(d){return(-10); })
+          .attr("x2", function(d){return(width+20) })
+          .attr("y1", function(d){return(y(average))})
+          .attr("y2", function(d){return(y(average))})
+          .attr("stroke", averageColor)
+          .style("stroke-width", 1.5)
+          .style("width", 80)
+          .on("mouseover", (event, d) => handleMouseOverAverage(d))
+          .on("mouseleave", (event, d) => handleMouseLeaveAverage())
+          .append("title")
+          .text("average hp");
   });
+}
+
+function handleMouseOverAverage(){
+  d3.selectAll(".aValue")
+    .style("stroke-width", 5)
+    .style("stroke", overColor);
+}
+
+function handleMouseLeaveAverage(){
+  d3.selectAll(".aValue")
+    .style("stroke-width", 1.5)
+    .style("stroke", averageColor);
 }
 
 function handleMouseOver(item) {
@@ -629,5 +670,32 @@ function updateBoxPlot(){
         .on("mouseleave", (event, d) => handleMouseLeave())
         .append("title")
         .text((d) => d.name);
+
+    var average = 0;
+    var i = 0;
+    while(i < data.length){
+      average = average + parseFloat(data[i].hp);
+      i = i + 1;
+    }
+    average = average / i;
+
+    //show the average hp
+    svg
+      .selectAll("average.averageValue")
+      .data(data)
+      .enter()
+      .append("line")
+        .attr("class", "averageValue aValue")
+        .attr("x1", function(d){return(-10); })
+        .attr("x2", function(d){return(width+20) })
+        .attr("y1", function(d){return(y(average))})
+        .attr("y2", function(d){return(y(average))})
+        .attr("stroke", averageColor)
+        .style("stroke-width", 1.5)
+        .style("width", 80)
+        .on("mouseover", (event, d) => handleMouseOverAverage(d))
+        .on("mouseleave", (event, d) => handleMouseLeaveAverage())
+        .append("title")
+        .text("average hp");
   });
 }
