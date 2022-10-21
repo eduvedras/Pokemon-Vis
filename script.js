@@ -1,18 +1,18 @@
 const margin = { top: 20, right: 30, bottom: 40, left: 90 };
-const width = 700 - margin.left - margin.right;
-const height = 500 - margin.top - margin.bottom;
+const width = 600 - margin.left - margin.right;
+const height = 400 - margin.top - margin.bottom;
 const brushHeight = 40;
 var posarr = [];
 var sMap = {};
 var attr = [[90,0], [200,0], [170,0], [5.0, 0]];
 var flag = 0;
 var overColor = "red";
-var normalColor = "blue";
+var normalColor = "#22BAC1";
 var deselectedColor = "#ddd";
 
 function init() {
-  createParallelCoordinates("#vi1");
-  createBoxPlot("#vi2");
+  createBoxPlot("#vi1");
+  createParallelCoordinates("#vi3");
 }
 
 function placeOutlier(data,stats,width,posX,posY){
@@ -45,10 +45,13 @@ function placeOutlier(data,stats,width,posX,posY){
 }
 
 function createParallelCoordinates(id) {
+  var widthC = width + 150;
+  var heightC = height + 20;
   const svg = d3
     .select(id)
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("width", widthC + margin.left + margin.right)
+    .attr("height", heightC + margin.top + margin.bottom)
+    //.attr("viewbox", [0,800,width,height])
     .append("g")
     .attr("transform",
     `translate(${margin.left},${margin.top})`);
@@ -61,7 +64,7 @@ function createParallelCoordinates(id) {
   const brush = d3.brushY()
   .extent([
     [-(brushHeight/2), 0],
-    [(brushHeight/2), height]
+    [(brushHeight/2), heightC]
   ])
   .on("start brush end", brushed);
 
@@ -76,11 +79,11 @@ function createParallelCoordinates(id) {
   
     //height = keys.length * 120
   
-  y = new Map(Array.from(keys, key => [key, d3.scaleLinear().domain(d3.extent(data, d => +d[key])).range([height,0])]))
+  y = new Map(Array.from(keys, key => [key, d3.scaleLinear().domain(d3.extent(data, d => +d[key])).range([heightC,0])]))
   //x = d3.scalePoint(keys, [margin.top, height - margin.bottom])
 
   x = d3.scalePoint()
-    .range([0, width])
+    .range([0, widthC])
     .padding(0.5)
     .domain(keys);
 
