@@ -129,37 +129,37 @@ function createParallelCoordinates(id) {
 
     function brushed({selection}, key) {
       flag = 1;
-      if (selection === null) selections.delete(key);
+      if (selection === null){
+        selections.delete(key);
+        attr = [[90,0], [200,0], [170,0], [5.0, 0]];
+        updateBoxPlot();
+      }
       else selections.set(key, selection.map(y.get(key).invert));
-      array = Array.from(selections);
-      aux = [];
-      i = 0;
-      for(attribute in array[0]){
-        aux.append([attribute, i]);
-        i++;
+      selarray = Array.from(selections);
+      //console.log(selections);
+      for (let [key1, value1] of selections) {
+        if (key1 == "level"){
+          //console.log("1");
+          attr[0] = value1
+        }
+        if (key1 == "hp"){
+          //console.log("2");
+          attr[1] = value1
+        }
+        if (key1 == "damage"){
+          //console.log("3");
+          attr[2] = value1
+        }
+        if (key1 == "energyCost"){
+          //console.log("4");
+          attr[3] = value1
+        }
+        //console.log(key1 + " = " + value1[0]);
       }
-      console.log(selections)
-      if ("level" in aux){
-        //console.log("1");
-        attr[0] = array[0][1]
-      }
-      if (array[0][0] == "hp"){
-        //console.log("2");
-        attr[1] = array[0][1]
-      }
-      if (array[0][0] == "damage"){
-        //console.log("3");
-        attr[2] = array[0][1]
-      }
-      if (array[0][0] == "energyCost"){
-        //console.log("4");
-        attr[3] = array[0][1]
-      }
-      //console.log(array[0][1][0]);
       updateBoxPlot();
       const selected = [];
       path.each(function(d) {
-        const active = Array.from(selections).every(([key, [max, min]]) => d[key] >= min && d[key] <= max);
+        const active = selarray.every(([key, [max, min]]) => d[key] >= min && d[key] <= max);
         //d3.select(this).style("stroke", active ? z(d[keyz]) : deselectedColor);
         d3.select(this).style("stroke", function(){
           if(active){
@@ -477,7 +477,7 @@ function updateBoxPlot(){
       && attr[3][1] <= elem.energyCost && elem.energyCost <= attr[3][0];
     });
 
-    //console.log(attr);
+    console.log(attr);
 
     var maxlen = 0
     var sumstat = d3.rollup(data, function(d) {
@@ -503,7 +503,7 @@ function updateBoxPlot(){
         return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars})
       }, d => d.types)
 
-
+    
     const svg = d3.select("#gBoxChart");
     svg.selectAll("*").remove();
     
