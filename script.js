@@ -2,7 +2,7 @@ const margin = { top: 20, right: 30, bottom: 40, left: 90 };
 const width = 700 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 const brushHeight = 40;
-var arr = [];
+var posarr = [];
 var sMap = {};
 var attr = [[90,0], [200,0], [170,0], [5.0, 0]];
 var flag = 0;
@@ -14,29 +14,29 @@ function init() {
 
 function placeOutlier(data,stats,width,posX,posY){
   const outlen = stats.get(data.types).outliers.length;
-  if(arr.includes("["+ posX+","+posY+"]")){
+  if(posarr.includes("["+ posX+","+posY+"]")){
     var auxPlace = 1;
     var auxPlace2 = -1;
     var pos = 0;
     while(auxPlace<=outlen){
       pos = posX + width/2 + auxPlace * 8;
-      if(!arr.includes("["+pos+","+posY+"]")){
+      if(!posarr.includes("["+pos+","+posY+"]")){
         break;
       }
       pos = posX + width/2 + auxPlace2 * 8;
-      if(!arr.includes("["+pos+","+posY+"]")){
+      if(!posarr.includes("["+pos+","+posY+"]")){
         break;
       }
       auxPlace = auxPlace +1;
       auxPlace2 = auxPlace2 -1;
     }
     if(pos != 0){
-      arr.push("["+ pos + "," + posY + "]");
+      posarr.push("["+ pos + "," + posY + "]");
       return pos;
     }
   }
   else{
-    arr.push("["+ posX + "," + posY + "]");
+    posarr.push("["+ posX + "," + posY + "]");
     return posX + width/2;
   }
 }
@@ -477,8 +477,6 @@ function updateBoxPlot(){
       && attr[3][1] <= elem.energyCost && elem.energyCost <= attr[3][0];
     });
 
-    console.log(attr);
-
     var maxlen = 0
     var sumstat = d3.rollup(data, function(d) {
         q1 = d3.quantile(d.map(function(g) { return g.hp;}).sort(d3.ascending),.25)
@@ -502,8 +500,8 @@ function updateBoxPlot(){
         //console.log(max)
         return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars})
       }, d => d.types)
-
-    
+    //console.log(sumstat.get("Water"));
+    //console.log(sumstat.get("Water")["outliers"][0]);
     const svg = d3.select("#gBoxChart");
     svg.selectAll("*").remove();
     
@@ -624,6 +622,7 @@ function updateBoxPlot(){
         .attr("r", 4)
         .attr("fill","none");
 
+    posarr = [];
     svg
       .selectAll("outlier.outlierValues")
       .data(data)
@@ -634,7 +633,7 @@ function updateBoxPlot(){
         .attr("cy", (d) => y(d.hp))
         .attr("r", 3)
         .attr("fill",function(d){
-          if(parseFloat(d.hp) > parseFloat(d.outlier)){
+          if(parseFloat(d.hp) > parseFloat(sumstat.get(d.types)["outliers"][0])){
             return "currentColor";
           }
           else{
@@ -646,7 +645,5 @@ function updateBoxPlot(){
         .on("mouseleave", (event, d) => handleMouseLeave())
         .append("title")
         .text((d) => d.name);
-
-    
   });
 }
