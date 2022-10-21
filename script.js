@@ -6,6 +6,9 @@ var posarr = [];
 var sMap = {};
 var attr = [[90,0], [200,0], [170,0], [5.0, 0]];
 var flag = 0;
+var overColor = "red";
+var normalColor = "blue";
+var deselectedColor = "#ddd";
 
 function init() {
   createParallelCoordinates("#vi1");
@@ -69,9 +72,7 @@ function createParallelCoordinates(id) {
 
   label = d => d.name
 
-  colors = d3.interpolateLab("blue", "blue")
-
-  deselectedColor = "#ddd"
+  colors = d3.interpolateLab(normalColor, normalColor)
   
     //height = keys.length * 120
   
@@ -86,7 +87,7 @@ function createParallelCoordinates(id) {
 
   const path = svg.append("g")
       .attr("fill", "none")
-      .attr("stroke-width", 1.5)
+      .attr("stroke-width", 1)
       .attr("stroke-opacity", 0.4)
       .selectAll("line.lineValue")
       //.data(data.slice().sort((a, b) => d3.ascending(a[keyz], b[keyz])))
@@ -94,7 +95,7 @@ function createParallelCoordinates(id) {
       .join("path")
         //.attr("stroke", d => z(d[keyz]))
         .attr("class", "lineValue itemValue")
-        .attr("stroke", "blue")
+        .attr("stroke", normalColor)
         .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])));
 
 
@@ -165,7 +166,7 @@ function createParallelCoordinates(id) {
           if(active){
             //console.log(this);
             sMap[this.getAttribute('d')] = 1;
-             return "blue"; 
+             return normalColor; 
           }
           else{
             sMap[this.getAttribute('d')] = 0;
@@ -365,14 +366,13 @@ function createBoxPlot(id) {
   });
 }
 
-
 function handleMouseOver(item) {
   d3.selectAll(".itemValue")
     .filter(function (d, i) {
       return d.id == item.id;
     })
     .style("stroke-width", 5)
-    .style("stroke", "red");
+    .style("stroke", overColor);
   
   d3.selectAll(".pValue")
     .filter(function (d, i) {
@@ -391,7 +391,7 @@ function handleMouseOver(item) {
         return "none";
       }
       else{
-        return "red";
+        return overColor;
       }
     })
     .style("fill",function(d){
@@ -399,7 +399,7 @@ function handleMouseOver(item) {
         return "none";
       }
       else{
-        return "red";
+        return overColor;
       }
     });
 
@@ -415,7 +415,7 @@ function handleMouseOver(item) {
   }})
   .style("stroke", function(d){
     if(parseFloat(d.hp) > parseFloat(d.outlier)){
-      return "red";
+      return overColor;
     }
     else{
       return "none";
@@ -423,7 +423,7 @@ function handleMouseOver(item) {
   })
   .style("fill", function(d){
     if(parseFloat(d.hp) > parseFloat(d.outlier)){
-      return "red";
+      return overColor;
     }
     else{
       return "none";
@@ -440,15 +440,14 @@ function handleMouseLeave() {
   d3.selectAll(".itemValue")
     .style("stroke-width", 1)
     .style("stroke",function(){
-      //console.log(this.getAttribute('d'));
       if(sMap[this.getAttribute('d')] == 1){
-        return "blue";
+        return normalColor;
       }
       else if(flag == 0){
-        return "blue";
+        return normalColor;
       }
       else{
-        return "#ddd";
+        return deselectedColor;
       }
     });
 
