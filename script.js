@@ -121,10 +121,10 @@ function createParallelCoordinates(id) {
         .attr("stroke", "white"))
       .call(brush);
 
-  path.on("mouseover", (event, d) => handleMouseOver(d))
+  /*path.on("mouseover", (event, d) => handleMouseOver(d))
   .on("mouseleave", (event, d) => handleMouseLeave())
   .append("title")
-  .text((d) => d.name)
+  .text((d) => d.name)*/
 
     const selections = new Map();
 
@@ -210,9 +210,11 @@ function createBoxPlot(id) {
         if (outliars.length > maxlen){
           maxlen = outliars.length;
         }
-        outliars.sort(function(a, b){return a - b});
 
-        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars})
+        outliars.sort(function(a, b){return a - b});
+        var ids = d.map(function(g){return g.id});
+
+        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars, ids: ids})
       }, d => d.types)
     
     // Show the X scale
@@ -271,35 +273,7 @@ function createBoxPlot(id) {
           .attr("height", function(d){return(y(d[1].q1)-y(d[1].q3));})
           .attr("width", function(){return x.bandwidth();} )
           .attr("stroke", "black")
-          .style("fill", function(d){
-            if(d[0] == "Psychic"){
-              return "#4f0a5e";
-            }
-            if(d[0] == "Water"){
-              return "#10a3cc";
-            }
-            if(d[0] == "Colorless"){
-              return "#dfecf0";
-            }
-            if(d[0] == "Fire"){
-              return "#f03a0c";
-            }
-            if(d[0] == "Fighting"){
-              return "#541606";
-            }
-            if(d[0] == "Lightning"){
-              return "#eeff05";
-            }
-            if(d[0] == "Grass"){
-              return "#099909";
-            }
-            if(d[0] == "Metal"){
-              return "#3d403d";
-            }
-            if(d[0] == "Darkness"){
-              return "#111211";
-            }
-          })
+          .style("fill", normalColor)
           .on("mouseover", (event, d) => handleMouseOver(d))
           .on("mouseleave", (event, d) => handleMouseLeave())
           .append("title")
@@ -308,17 +282,30 @@ function createBoxPlot(id) {
 
        // Show the median
     svg
-      .selectAll("medianLines")
+      .selectAll("medians")
       .data(sumstat)
       .enter()
-      .append("line")
-        .attr("x1", function(d){return(x(d[0])) })
-        .attr("x2", function(d){return(x(d[0])+x.bandwidth()) })
-        .attr("y1", function(d){return(y(d[1].median))})
-        .attr("y2", function(d){return(y(d[1].median))})
-        .attr("stroke", "black")
-        .style("width", 80)
-      
+      .append("polygon")
+        .attr("points", function (d, i) {
+          let polygonString_1 = x(d[0])+x.bandwidth()/2 + "," + (y(d[1].median) - 10);
+          let polygonString_2 = x(d[0])+x.bandwidth()/2 - 5 + "," + (y(d[1].median) + 10);
+          let polygonString_3 = x(d[0])+x.bandwidth()/2 + 10 + "," + (y(d[1].median) - 2);
+          let polygonString_4 = x(d[0])+x.bandwidth()/2 - 10 + "," + (y(d[1].median) - 2);
+          let polygonString_5 = x(d[0])+x.bandwidth()/2 + 5 + "," + (y(d[1].median) + 10);
+          let polygonString =
+            polygonString_1 +
+            " " +
+            polygonString_2 +
+            " " +
+            polygonString_3 +
+            " " +
+            polygonString_4 +
+            " " +
+            polygonString_5;
+          return polygonString;
+        })
+        .attr("stroke-width", "5")
+        .attr("fill", "blue");      
 
       svg
         .selectAll("point.pointValues")
@@ -373,7 +360,7 @@ function createBoxPlot(id) {
           .attr("x2", function(d){return(width+20) })
           .attr("y1", function(d){return(y(average))})
           .attr("y2", function(d){return(y(average))})
-          .attr("stroke", averageColor)
+          .attr("stroke", averageColor)//d3.color(averageColor).copy({opacity:0.5}))
           .style("stroke-width", 1.5)
           .style("width", 80)
           .on("mouseover", (event, d) => handleMouseOverAverage(d))
@@ -398,9 +385,14 @@ function handleMouseLeaveAverage(){
 function handleMouseOver(item) {
   d3.selectAll(".itemValue")
     .filter(function (d, i) {
-      return d.id == item.id;
+      if(item[1] == undefined){
+        return d.id == item.id
+      }
+      else{
+        return item[1].ids.includes(d.id);
+      }
     })
-    .style("stroke-width", 5)
+    .style("stroke-width", 2)
     .style("stroke", overColor);
   
   d3.selectAll(".pValue")
@@ -463,6 +455,7 @@ function handleMouseOver(item) {
     .filter(function (d, i) {
       return d[0] == item[0];
     })
+    .style("fill",overColor);
 }
 
 function handleMouseLeave() {
@@ -495,6 +488,9 @@ function handleMouseLeave() {
         return "none";
       }})
     .attr("fill-opacity", 0.2);
+
+  d3.selectAll(".bValue")
+    .style("fill",normalColor);
 }
 
 
@@ -524,8 +520,9 @@ function updateBoxPlot(){
           maxlen = outliars.length;
         }
         outliars.sort(function(a, b){return a - b});
+        var ids = d.map(function(g){return g.id});
         
-        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars})
+        return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max, outliers: outliars, ids:ids})
       }, d => d.types)
     
     const svg = d3.select("#gBoxChart");
@@ -587,53 +584,39 @@ function updateBoxPlot(){
           return(y(d[1].q1)-y(d[1].q3));})
         .attr("width", function(){return x.bandwidth();} )
         .attr("stroke", "black")
-        .style("fill", function(d){
-          if(d[0] == "Psychic"){
-            return "#4f0a5e";
-          }
-          if(d[0] == "Water"){
-            return "#10a3cc";
-          }
-          if(d[0] == "Colorless"){
-            return "#dfecf0";
-          }
-          if(d[0] == "Fire"){
-            return "#f03a0c";
-          }
-          if(d[0] == "Fighting"){
-            return "#541606";
-          }
-          if(d[0] == "Lightning"){
-            return "#eeff05";
-          }
-          if(d[0] == "Grass"){
-            return "#099909";
-          }
-          if(d[0] == "Metal"){
-            return "#3d403d";
-          }
-          if(d[0] == "Darkness"){
-            return "#111211";
-          }
-        })
+        .style("fill", normalColor)
         .on("mouseover", (event, d) => handleMouseOver(d))
         .on("mouseleave", (event, d) => handleMouseLeave())
         .append("title")
         .text(function(d) { return "median - " + d[1].median; })
         
 
-      // Show the median
-  svg
-    .selectAll("medianLines")
+    // Show the median
+    svg
+    .selectAll("medians")
     .data(sumstat)
     .enter()
-    .append("line")
-      .attr("x1", function(d){return(x(d[0])) })
-      .attr("x2", function(d){return(x(d[0])+x.bandwidth()) })
-      .attr("y1", function(d){return(y(d[1].median))})
-      .attr("y2", function(d){return(y(d[1].median))})
-      .attr("stroke", "black")
-      .style("width", 80)
+    .append("polygon")
+      .attr("points", function (d, i) {
+        let polygonString_1 = x(d[0])+x.bandwidth()/2 + "," + (y(d[1].median) - 10);
+        let polygonString_2 = x(d[0])+x.bandwidth()/2 - 5 + "," + (y(d[1].median) + 10);
+        let polygonString_3 = x(d[0])+x.bandwidth()/2 + 10 + "," + (y(d[1].median) - 2);
+        let polygonString_4 = x(d[0])+x.bandwidth()/2 - 10 + "," + (y(d[1].median) - 2);
+        let polygonString_5 = x(d[0])+x.bandwidth()/2 + 5 + "," + (y(d[1].median) + 10);
+        let polygonString =
+          polygonString_1 +
+          " " +
+          polygonString_2 +
+          " " +
+          polygonString_3 +
+          " " +
+          polygonString_4 +
+          " " +
+          polygonString_5;
+        return polygonString;
+      })
+      .attr("stroke-width", "5")
+      .attr("fill", "blue");
     
 
     svg
