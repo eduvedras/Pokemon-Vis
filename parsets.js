@@ -15,7 +15,7 @@ function createParallelSets(id) {
       .attr("height", chart.height())
       .append("svg");
   
-  d3.csv("data.csv", function(error, csv) {
-    vis.datum(csv).call(chart);
+  d3.csv("data.csv").then(function(data) {
+    vis.datum(data).call(chart);
   });
 }
