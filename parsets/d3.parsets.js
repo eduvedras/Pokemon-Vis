@@ -104,7 +104,7 @@
           var dEnter = dimension.enter().append("g")
               .attr("class", "dimension")
               .attr("transform", function(d) { return "translate(0," + d.y + ")"; })
-              .on("mousedown.parsets", cancelEvent);
+              .on("mousedown.parsets", function(event,d){cancelEvent(event)});
           dimension = dEnter.merge(dimension);
           dimension.each(function(d) {
                 d.y0 = d.y;
@@ -124,20 +124,20 @@
               .attr("class", "sort alpha")
               .attr("dx", "2em")
               .text("alpha »")
-              .on("mousedown.parsets", cancelEvent);
+              .on("mousedown.parsets", function(event,d){cancelEvent(event)});
           textEnter.append("tspan")
               .attr("class", "sort size")
               .attr("dx", "2em")
               .text("size »")
-              .on("mousedown.parsets", cancelEvent);
+              .on("mousedown.parsets", function(event,d){cancelEvent(event)});
           dimension
               .call(d3.drag()
-                .on("start", function(d) {
+                .on("start", function(event,d) {
                   dragging = true;
                   d.y0 = d.y;
                 })
-                .on("drag", function(d) {
-                  d.y0 = d.y = d3.event.y;
+                .on("drag", function(event,d) {
+                  d.y0 = d.y = event.y;
                   for (var i = 1; i < dimensions.length; i++) {
                     if (height * dimensions[i].y < height * dimensions[i - 1].y) {
                       dimensions.sort(compareY);
@@ -161,7 +161,7 @@
                   ribbon.filter(function(r) { return r.source.dimension === d || r.target.dimension === d; })
                       .attr("d", ribbonPath);
                 })
-                .on("end", function(d) {
+                .on("end", function(event,d) {
                   dragging = false;
                   unhighlight();
                   var y0 = 45,
@@ -214,12 +214,12 @@
           var mouse = g.select(".ribbon-mouse").selectAll("path")
               .data(nodes, function(d) { return d.path; });
           mouse.enter().append("path")
-              .on("mousemove.parsets", function(d) {
+              .on("mousemove.parsets", function(event,d) {
                 ribbon.classed("active", false);
                 if (dragging) return;
                 highlight(d = d.node, true);
-                showTooltip(tooltip_.call(this, d));
-                d3.event.stopPropagation();
+                showTooltip(tooltip_.call(this, d),event);
+                event.stopPropagation();
               })
             .merge(mouse)
               .sort(function(a, b) { return b.count - a.count; })
@@ -286,22 +286,22 @@
               .attr("transform", function(d) { return "translate(" + d.x + ")"; });
           category.exit().remove();
           category = categoryEnter.merge(category)
-              .on("mousemove.parsets", function(d) {
+              .on("mousemove.parsets", function(event,d) {
                 ribbon.classed("active", false);
                 if (dragging) return;
                 d.nodes.forEach(function(d) { highlight(d); });
-                showTooltip(categoryTooltip.call(this, d));
-                d3.event.stopPropagation();
+                showTooltip(categoryTooltip.call(this, d),event);
+                event.stopPropagation();
               })
               .on("mouseout.parsets", unhighlight)
-              .on("mousedown.parsets", cancelEvent)
+              .on("mousedown.parsets", function(event,d){cancelEvent(event)})
               .call(d3.drag()
-                .on("start", function(d) {
+                .on("start", function(event,d) {
                   dragging = true;
                   d.x0 = d.x;
                 })
-                .on("drag", function(d) {
-                  d.x = d3.event.x;
+                .on("drag", function(event,d) {
+                  d.x = event.x;
                   var categories = d.dimension.categories;
                   for (var i = 0, c = categories[0]; ++i < categories.length;) {
                     if (c.x + c.dx / 2 > (c = categories[i]).x + c.dx / 2) {
@@ -317,7 +317,7 @@
                   var x = 0,
                       p = spacing / (categories.length - 1);
                   categories.forEach(function(e) {
-                    if (d === e) e.x0 = d3.event.x;
+                    if (d === e) e.x0 = event.x;
                     e.x = x;
                     x += e.count / total * (width - spacing) + p;
                   });
@@ -327,7 +327,7 @@
                   ribbon.filter(function(r) { return r.source.node === d || r.target.node === d; })
                       .attr("d", ribbonPath);
                 })
-                .on("end", function(d) {
+                .on("end", function(event,d) {
                   dragging = false;
                   unhighlight();
                   updateRibbons();
@@ -436,8 +436,8 @@
       return dimensionFormat.call(this, d.name, i);
     }
 
-    function showTooltip(html) {
-      var m = d3.mouse(body.node());
+    function showTooltip(html,event) {
+      var m = d3.pointer(event);
       tooltip
           .style("display", null)
           .style("left", m[0] + 30 + "px")
@@ -571,12 +571,12 @@
   d3.parsets.tree = buildTree;
 
   function autoDimensions(d) {
-    return d.length ? d3.keys(d[0]).sort() : [];
+    return d.length ? Object.keys(d[0]).sort() : [];
   }
 
-  function cancelEvent() {
-    d3.event.stopPropagation();
-    d3.event.preventDefault();
+  function cancelEvent(event) {
+    event.stopPropagation();
+    event.preventDefault();
   }
 
   function dimensionName(d) { return d.name; }
