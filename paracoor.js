@@ -13,6 +13,20 @@ function createParallelCoordinates(id) {
     keys = Object.keys(data[0]).filter(function(d) { return d != "id" && d != "outlier" && d != "name" && d != "types" && d != "weaknesses" && d != "rarity" 
                                                           && d != "resistances" && d != "evolution" && d!=""})
     
+
+    d3.select("button").on("click", function() {
+      var txtName = inputBox.value;
+      path.style("stroke", function(d) {
+        return d.name === txtName ? "red" : deselectedColor;
+      })
+      .style("stroke-width", function(d){
+        return d.name === txtName ? 5:1;
+      })
+      points.style("fill", function(d){
+        return d.name === txtName ? "red" : "none";
+      })
+    })
+
     //Create a brush
     const brush = d3.brushY()
     .extent([
@@ -118,7 +132,8 @@ function createParallelCoordinates(id) {
             else{
               sMap[this.getAttribute('d')] = 0;
               return deselectedColor;
-            }});
+            }})
+            .style("stroke-width",1);
           if (active) {
             d3.select(this).raise();
             selected.push(d);

@@ -155,7 +155,7 @@ function placeOutlier(data,stats,width,posX,posY){
           .attr("stroke-width", "5")
           .attr("fill", "blue");      
   
-        svg
+        points = svg
           .selectAll("point.pointValues")
           .data(data)
           .enter()
@@ -344,7 +344,7 @@ function updateBoxPlot(){
         .attr("fill", "blue");
       
   
-      svg
+      points = svg
         .selectAll("point.pointValues")
         .data(data)
         .enter()
