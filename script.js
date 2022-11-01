@@ -60,9 +60,9 @@ function showSuggestions(list){
 
 
 function init() {
-  createBoxPlot("#vi1");
+  //createBoxPlot("#vi1");
   createParallelSets("#vi2");
-  createParallelCoordinates("#vi3");
+  //createParallelCoordinates("#vi3");
 }
 
 function handleMouseOverAverage(){

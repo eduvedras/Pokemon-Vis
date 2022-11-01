@@ -437,12 +437,12 @@
     }
 
     function showTooltip(html,event) {
-      var m = d3.pointer(event);
+      //var m = d3.pointer(event);
       tooltip
-          .style("display", null)
-          .style("left", m[0] + 30 + "px")
-          .style("top", m[1] - 20 + "px")
-          .html(html);
+        .style("display", null)
+        .style("left", event.x + 30 + "px")
+        .style("top", event.y - 20 + "px")
+        .html(html);
     }
 
     function hideTooltip() {
