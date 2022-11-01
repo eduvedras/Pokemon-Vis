@@ -206,7 +206,7 @@
                 d.source.x0 = d.source.x;
                 d.target.x0 = d.target.x;
               })
-              .attr("class", function(d) { return "category-" + d.major; })
+              .attr("class", function(d) { return "category-0"; })//return "category-" + d.major; })
               .attr("d", ribbonPath);
           ribbon.exit().remove();
           ribbon = ribbonEnter.merge(ribbon);
@@ -350,7 +350,7 @@
           category.select("rect")
               .attr("width", function(d) { return d.dx; })
               .attr("class", function(d) {
-                return "category-" + (d.dimension === dimensions[0] ? ordinal(d.name) : "background");
+                return "category-0";//return "category-" + (d.dimension === dimensions[0] ? ordinal(d.name) : "background");
               });
           category.select("line")
               .attr("x2", function(d) { return d.dx; });
@@ -439,8 +439,8 @@
     function showTooltip(html,event) {
       tooltip
         .style("display", null)
-        .style("left", event.x + 30 + "px")
-        .style("top", event.y - 20 + "px")
+        .style("left", event.x - 250 + "px")
+        .style("top", event.y - 60 + "px")
         .html(html);
     }
 

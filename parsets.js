@@ -2,8 +2,7 @@ function createParallelSets(id) {
   var chart = d3.parsets()
   .dimensions(["evolution","rarity","resistances","types","weaknesses"])
   .width(645)
-  .height(750)
-  .tension(0.7);
+  .height(750);
   
   var vis = d3.select(id)
       .attr("width", chart.width())
