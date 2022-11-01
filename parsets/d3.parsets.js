@@ -437,7 +437,6 @@
     }
 
     function showTooltip(html,event) {
-      //var m = d3.pointer(event);
       tooltip
         .style("display", null)
         .style("left", event.x + 30 + "px")
