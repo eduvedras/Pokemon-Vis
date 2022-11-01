@@ -6,14 +6,6 @@
 </head>
 
 <body onload="init()">
-  <div class="wrapper">
-    <div class="search-input">
-      <input type="text" placeholder="Search for a card...">
-      <div class="autocom-box">
-      </div>
-    </div>
-  </div>
-  <button type="button" class="button">Go</button>
   <div>
     <div style="width: 33%; float: left">
       <svg style="height: 20px;"></svg>
@@ -30,13 +22,37 @@
     <div style="position:absolute;left: 55%; top: 2%;width: 50%; float: left"><svg id="vi2"></svg></div>
   </div>
 
+  <div class="wrapper">
+    <div class="search-input">
+      <input type="text" placeholder="Search for a card...">
+      <div class="autocom-box">
+      </div>
+    </div>
+  </div>
+  <button type="button" class="button">Go</button>
+  <img src="./Images/pokemon.png" alt="Pokemon" style="position:absolute;top: 70%;right: 85%;float:left;">
+  <button type="button" class="button2" onclick="clean()" style="position:absolute;top:3%;left:7%">Reset</button>
+  <script>
+    function clean(){
+      const vi1 = document.getElementById('vi1');
+      const vi2 = document.getElementById('vi2');
+      const vi3 = document.getElementById('vi3');
+
+      vi1.replaceChildren();
+      vi2.replaceChildren();
+      vi3.replaceChildren();
+
+      init()
+    }
+  </script> 
+
   <link rel="stylesheet" href="./searchbar/style.css">
   <link rel="stylesheet" href="./searchbar/all.min.css"/>
   <script src="./searchbar/suggestions.js"></script>
   <script src="script.js"></script>
-  <script src="parsets.js"></script>
-  <script src="boxplot.js"></script>
-  <script src="paracoor.js"></script>
+  <script src="./Idioms/parsets.js"></script>
+  <script src="./Idioms/boxplot.js"></script>
+  <script src="./Idioms/paracoor.js"></script>
   <script src="d3.v7.min.js"></script>
   <link rel="stylesheet" href="./parsets/d3.parsets.css">
   <script src="./parsets/d3.parsets.js"></script>
