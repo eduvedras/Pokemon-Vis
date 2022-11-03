@@ -124,10 +124,20 @@ function placeOutlier(data,stats,width,posX,posY){
             .style("fill", normalColor)
             .on("mouseover", (event, d) => handleMouseOver(d))
             .on("mouseleave", (event, d) => handleMouseLeave())
-            .on("click", function(){
-              type = findType(d3.select(this).attr("x"));
-              updateParallelSets(type);
-              updatePC(type);
+            .on("click", function(event, item){
+              selectedType = findType(d3.select(this).attr("x"));
+              
+              updateParallelSets();
+              updatePC();
+
+              d3.selectAll(".bValue")
+                .style("fill",normalColor);
+
+              d3.selectAll(".bValue")
+                .filter(function (d, i) {
+                  return d[0] == item[0];
+                })
+                .style("fill",selectedColor);
 
             })
             .append("title")
@@ -229,8 +239,14 @@ function updateBoxPlot(){
     d3.csv("data.csv").then(function (data){
       data = data.filter(function (elem) {
         function expr(){
-          return attr[0][1] <= elem.level && elem.level <= attr[0][0] && attr[1][1] <= elem.hp && elem.hp <= attr[1][0] && attr[2][1] <= elem.damage && elem.damage <= attr[2][0]
-          && attr[3][1] <= elem.energyCost && elem.energyCost <= attr[3][0];
+          if(selectedType != "none"){
+            return elem.types == selectedType && attr[0][1] <= elem.level && elem.level <= attr[0][0] && attr[1][1] <= elem.hp && elem.hp <= attr[1][0] && attr[2][1] <= elem.damage && elem.damage <= attr[2][0]
+            && attr[3][1] <= elem.energyCost && elem.energyCost <= attr[3][0];
+          }
+          else{
+            return attr[0][1] <= elem.level && elem.level <= attr[0][0] && attr[1][1] <= elem.hp && elem.hp <= attr[1][0] && attr[2][1] <= elem.damage && elem.damage <= attr[2][0]
+            && attr[3][1] <= elem.energyCost && elem.energyCost <= attr[3][0];
+          }
         };
         return expr() && (cat1(elem) || cat2(elem));
       });
@@ -322,9 +338,19 @@ function updateBoxPlot(){
           .on("mouseover", (event, d) => handleMouseOver(d))
           .on("mouseleave", (event, d) => handleMouseLeave())
           .on("click", function(){
-            type = findType(d3.select(this).attr("x"));
-            updateParallelSets(type);
-            updatePC(type);
+            selectedType = findType(d3.select(this).attr("x"));
+      
+            updateParallelSets();
+            updatePC();
+
+            d3.selectAll(".bValue")
+            .style("fill",normalColor);
+
+            d3.selectAll(".bValue")
+              .filter(function (d, i) {
+                return d[0] == item[0];
+              })
+              .style("fill",selectedColor);
 
           })
           .append("title")

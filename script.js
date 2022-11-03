@@ -7,14 +7,20 @@ var points;
 var sMap = {};
 var attr = [[90,0], [200,0], [170,0], [5.0, 0]];
 var flag = 0;
+var selectedType = "none";
 
 var selectedCat1 = [];
 var dimOrder1 = ["evolution","rarity","resistances","types","weaknesses"];
+var selIds1 = [];
 var selectedCat2 = [];
 var dimOrder2 = ["evolution","rarity","resistances","types","weaknesses"];
+var selIds2 = [];
+
+var dimensionOrder = ["evolution","rarity","resistances","types","weaknesses"];
 
 var overColor = "red";
 var normalColor = "#22BAC1";
+var selectedColor = "yellow";
 var deselectedColor = "#ddd";
 var averageColor = "green";
 var sumstat;
@@ -191,43 +197,110 @@ function handleMouseLeave() {
     .attr("fill-opacity", 0.2);
 
   d3.selectAll(".bValue")
-    .style("fill",normalColor);
+    .style("fill",function(){
+      if(this.style.fill == selectedColor){
+        return selectedColor;
+      }
+      else{
+        return normalColor;
+      }
+    });
 }
 
 function cat1(elem){
   if(selectedCat1.length == 1){
-    return elem[dimOrder1[0]] == selectedCat1[0];
+    if(elem[dimOrder1[0]] == selectedCat1[0]){
+      selIds1.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   if(selectedCat1.length == 2){
-    return elem[dimOrder1[0]] == selectedCat1[0] && elem[dimOrder1[1]] == selectedCat1[1];
+    if(elem[dimOrder1[0]] == selectedCat1[0] && elem[dimOrder1[1]] == selectedCat1[1]){
+      selIds1.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   if(selectedCat1.length == 3){
-    return elem[dimOrder1[0]] == selectedCat1[0] && elem[dimOrder1[1]] == selectedCat1[1] && elem[dimOrder1[2]] == selectedCat1[2];
+    if(elem[dimOrder1[0]] == selectedCat1[0] && elem[dimOrder1[1]] == selectedCat1[1] && elem[dimOrder1[2]] == selectedCat1[2]){
+      selIds1.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   if(selectedCat1.length == 4){
-    return elem[dimOrder1[0]] == selectedCat1[0] && elem[dimOrder1[1]] == selectedCat1[1] && elem[dimOrder1[2]] == selectedCat1[2] && elem[dimOrder1[3]] == selectedCat1[3];
+    if(elem[dimOrder1[0]] == selectedCat1[0] && elem[dimOrder1[1]] == selectedCat1[1] && elem[dimOrder1[2]] == selectedCat1[2] && elem[dimOrder1[3]] == selectedCat1[3]){
+      selIds1.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   if(selectedCat1.length == 5){
-    return elem[dimOrder1[0]] == selectedCat1[0] && elem[dimOrder1[1]] == selectedCat1[1] && elem[dimOrder1[2]] == selectedCat1[2] && elem[dimOrder1[3]] == selectedCat1[3] && elem[dimOrder1[4]] == selectedCat1[4];
+    if(elem[dimOrder1[0]] == selectedCat1[0] && elem[dimOrder1[1]] == selectedCat1[1] && elem[dimOrder1[2]] == selectedCat1[2] && elem[dimOrder1[3]] == selectedCat1[3] && elem[dimOrder1[4]] == selectedCat1[4]){
+      selIds1.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   return true;
 }
 
 function cat2(elem){
   if(selectedCat2.length == 1){
-    return elem[dimOrder2[0]] == selectedCat2[0];
+    if(elem[dimOrder2[0]] == selectedCat2[0]){
+      selIds2.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   if(selectedCat2.length == 2){
-    return elem[dimOrder2[0]] == selectedCat2[0] && elem[dimOrder2[1]] == selectedCat2[1];
+    if(elem[dimOrder2[0]] == selectedCat2[0] && elem[dimOrder2[1]] == selectedCat2[1]){
+      selIds2.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   if(selectedCat2.length == 3){
-    return elem[dimOrder2[0]] == selectedCat2[0] && elem[dimOrder2[1]] == selectedCat2[1] && elem[dimOrder2[2]] == selectedCat2[2];
+    if(elem[dimOrder2[0]] == selectedCat2[0] && elem[dimOrder2[1]] == selectedCat2[1] && elem[dimOrder2[2]] == selectedCat2[2]){
+      selIds2.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   if(selectedCat2.length == 4){
-    return elem[dimOrder2[0]] == selectedCat2[0] && elem[dimOrder2[1]] == selectedCat2[1] && elem[dimOrder2[2]] == selectedCat2[2] && elem[dimOrder2[3]] == selectedCat2[3];
+    if(elem[dimOrder2[0]] == selectedCat2[0] && elem[dimOrder2[1]] == selectedCat2[1] && elem[dimOrder2[2]] == selectedCat2[2] && elem[dimOrder2[3]] == selectedCat2[3]){
+      selIds2.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   if(selectedCat2.length == 5){
-    return elem[dimOrder2[0]] == selectedCat2[0] && elem[dimOrder2[1]] == selectedCat2[1] && elem[dimOrder2[2]] == selectedCat2[2] && elem[dimOrder2[3]] == selectedCat2[3] && elem[dimOrder2[4]] == selectedCat2[4];
+    if(elem[dimOrder2[0]] == selectedCat2[0] && elem[dimOrder2[1]] == selectedCat2[1] && elem[dimOrder2[2]] == selectedCat2[2] && elem[dimOrder2[3]] == selectedCat2[3] && elem[dimOrder2[4]] == selectedCat2[4]){
+      selIds2.push(elem.id);
+      return true;
+    }
+    else{
+      return false;
+    }
   }
   return false;
 }

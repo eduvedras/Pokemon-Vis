@@ -150,14 +150,14 @@ function createParallelCoordinates(id) {
   }
 
 
-  function updatePC(type){
+  function updatePC(){
     flag = 0;
     var widthC = width + 150;
     var heightC = height + 20;
     d3.csv("data.csv").then(function(data) {
       data = data.filter(function (elem){
-        if(type){
-          return type == elem.types;
+        if(selectedType != "none"){
+          return selectedType == elem.types;
         }
         else{
           return cat1(elem) || cat2(elem);
@@ -213,7 +213,17 @@ function createParallelCoordinates(id) {
           .data(data)
           .join("path")
             .attr("class", "lineValue itemValue")
-            .attr("stroke", normalColor)
+            .attr("stroke", function(d){
+              if(selIds1.includes(d.id)){
+                return "blue";
+              }
+              else if(selIds2.includes(d.id)){
+                return "yellow";
+              }
+              else{
+                return normalColor;
+              }
+            })
             .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])));
   
   
@@ -238,11 +248,13 @@ function createParallelCoordinates(id) {
             .attr("stroke-linejoin", "round")
             .attr("stroke", "white"))
           .call(brush);
-  
-      /*path.on("mouseover", (event, d) => handleMouseOver(d))
-      .on("mouseleave", (event, d) => handleMouseLeave())
-      .append("title")
-      .text((d) => d.name)*/
+      
+      if(data.length <= 200){
+        path.on("mouseover", (event, d) => handleMouseOver(d))
+        .on("mouseleave", (event, d) => handleMouseLeave())
+        .append("title")
+        .text((d) => d.name)
+      }
   
         const selections = new Map();
   

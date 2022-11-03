@@ -15,9 +15,10 @@ function createParallelSets(id) {
   });
 }
 
-function updateParallelSets(type){
+function updateParallelSets(){
+  console.log(dimensionOrder);
   var chart = d3.parsets()
-  .dimensions(["evolution","rarity","resistances","types","weaknesses"])
+  .dimensions(dimensionOrder)
   .width(645)
   .height(750);
 
@@ -27,8 +28,8 @@ function updateParallelSets(type){
 
   d3.csv("data.csv").then(function(data) {
     data = data.filter(function (elem){
-      if(type){
-        return type == elem.types && attr[0][1] <= elem.level && elem.level <= attr[0][0] && attr[1][1] <= elem.hp && elem.hp <= attr[1][0] && attr[2][1] <= elem.damage && elem.damage <= attr[2][0]
+      if(selectedType != "none"){
+        return selectedType == elem.types && attr[0][1] <= elem.level && elem.level <= attr[0][0] && attr[1][1] <= elem.hp && elem.hp <= attr[1][0] && attr[2][1] <= elem.damage && elem.damage <= attr[2][0]
         && attr[3][1] <= elem.energyCost && elem.energyCost <= attr[3][0];
       }
       else{
@@ -40,22 +41,3 @@ function updateParallelSets(type){
     svg.datum(data).call(chart);
   });
 }
-
-/*
-function updatePS(type){
-  var chart = d3.parsets()
-  .dimensions(["evolution","rarity","resistances","types","weaknesses"])
-  .width(645)
-  .height(750);
-
-  const svg = d3.select("#gSetChart");
-  svg.selectAll("*").remove();
-
-  d3.csv("data.csv").then(function(data) {
-    data = data.filter(function (elem){
-      return type == elem.types;
-    });
-
-    svg.datum(data).call(chart);
-  });
-}*/

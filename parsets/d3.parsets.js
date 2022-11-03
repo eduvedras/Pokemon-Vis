@@ -172,6 +172,11 @@
                   transition(d3.select(this))
                       .attr("transform", "translate(0," + d.y + ")")
                       .tween("ribbon", ribbonTweenY);
+
+                  dimensionOrder = [];
+                  for(const dim in dimensions){
+                    dimensionOrder.push(dimensions[dim].name);
+                  }
                 }));
           dimension.select("text").select("tspan.sort.alpha")
               .on("click.parsets", sortBy("alpha", function(a, b) { return a.name < b.name ? 1 : -1; }, dimension));
