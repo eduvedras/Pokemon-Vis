@@ -157,7 +157,7 @@ function createParallelCoordinates(id) {
     d3.csv("data.csv").then(function(data) {
       data = data.filter(function (elem){
         if(type){
-          return type == elem.types && (cat1(elem) || cat2(elem));
+          return type == elem.types;
         }
         else{
           return cat1(elem) || cat2(elem);
@@ -213,17 +213,7 @@ function createParallelCoordinates(id) {
           .data(data)
           .join("path")
             .attr("class", "lineValue itemValue")
-            .attr("stroke", function(d){
-              if(selIds1.includes(d.id)){
-                return "blue";
-              }
-              else if(selIds2.includes(d.id)){
-                return "yellow";
-              }
-              else{
-                return normalColor;
-              }
-            })
+            .attr("stroke", normalColor)
             .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])));
   
   
