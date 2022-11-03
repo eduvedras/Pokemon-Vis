@@ -124,6 +124,12 @@ function placeOutlier(data,stats,width,posX,posY){
             .style("fill", normalColor)
             .on("mouseover", (event, d) => handleMouseOver(d))
             .on("mouseleave", (event, d) => handleMouseLeave())
+            .on("click", function(){
+              type = findType(d3.select(this).attr("x"));
+              updateParallelSets(type);
+              updatePC(type);
+
+            })
             .append("title")
             .text(function(d) { return "median - " + d[1].median; })
             
@@ -222,8 +228,11 @@ function placeOutlier(data,stats,width,posX,posY){
 function updateBoxPlot(){
     d3.csv("data.csv").then(function (data){
       data = data.filter(function (elem) {
-        return attr[0][1] <= elem.level && elem.level <= attr[0][0] && attr[1][1] <= elem.hp && elem.hp <= attr[1][0] && attr[2][1] <= elem.damage && elem.damage <= attr[2][0]
-        && attr[3][1] <= elem.energyCost && elem.energyCost <= attr[3][0];
+        function expr(){
+          return attr[0][1] <= elem.level && elem.level <= attr[0][0] && attr[1][1] <= elem.hp && elem.hp <= attr[1][0] && attr[2][1] <= elem.damage && elem.damage <= attr[2][0]
+          && attr[3][1] <= elem.energyCost && elem.energyCost <= attr[3][0];
+        };
+        return expr() && (cat1(elem) || cat2(elem));
       });
   
       var maxlen = 0
@@ -312,6 +321,12 @@ function updateBoxPlot(){
           .style("fill", normalColor)
           .on("mouseover", (event, d) => handleMouseOver(d))
           .on("mouseleave", (event, d) => handleMouseLeave())
+          .on("click", function(){
+            type = findType(d3.select(this).attr("x"));
+            updateParallelSets(type);
+            updatePC(type);
+
+          })
           .append("title")
           .text(function(d) { return "median - " + d[1].median; })
           

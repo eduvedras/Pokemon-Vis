@@ -221,6 +221,39 @@
                 showTooltip(tooltip_.call(this, d),event);
                 event.stopPropagation();
               })
+              .on("click.parsets", function(event,d) {
+                if (dragging) return;
+                i = 0;
+                while (i < ribbon._groups[0].length){
+                  if(ribbon._groups[0][i].className.baseVal.includes("selected2")){
+                    ribbon.classed("selected1", false);
+                    ribbon.classed("selected2", false);
+                    selection1(d = d.node,true);
+                    break;
+                  }
+                  i = i + 1;
+                }
+                var j = 0
+                if(i == ribbon._groups[0].length){
+                  while (j < ribbon._groups[0].length){
+                    if(ribbon._groups[0][j].className.baseVal.includes("selected1")){
+                      ribbon.classed("selected2", false);
+                      selection2(d = d.node,true);
+                      break;
+                    }
+                    j = j + 1;
+                  }
+                }
+
+                if(j == ribbon._groups[0].length){
+                  ribbon.classed("selected1", false);
+                  ribbon.classed("selected2", false);
+                  selection1(d = d.node,true);
+                }
+                //ribbon.classed("selected1", false);
+                //selection1(d = d.node, true);
+                event.stopPropagation();
+              })
             .merge(mouse)
               .sort(function(a, b) { return b.count - a.count; })
               .attr("d", ribbonPathStatic);
@@ -271,6 +304,100 @@
           }).classed("active", true);
         }
 
+        function selection1(d, ancestors) {
+          if (dragging) return;
+          var highlight = [];
+          (function recurse(d) {
+            highlight.push(d);
+            for (var k in d.children) recurse(d.children[k]);
+          })(d);
+          highlight.shift();
+
+          selectedCat1 = [];
+          dimOrder1 = [];
+          selectedCat2 = [];
+          dimOrder2 = [];
+          
+          if (ancestors){ 
+            highlight.push(d), d = d.parent;
+            var str = highlight[highlight.length - 1].path;
+            
+            for(const dim in dimensions){
+              dimOrder1.push(dimensions[dim].name);
+            }
+            
+            while (true){
+              if(str.includes('\u0000')){
+                selectedCat1.push(str.substring(0, str.indexOf('\u0000')));
+                str = str.substring(str.indexOf('\u0000') + 1);
+              }
+              else{
+                selectedCat1.push(str.substring(0));
+                break;
+              }
+            }
+          }
+          else{
+            dimOrder1[0] = d.dimension;
+            selectedCat1.push(d.name);
+          }
+
+          updateBoxPlot();
+          updatePC();
+
+          ribbon.filter(function(d) {
+            var selected = highlight.indexOf(d.node) >= 0;
+            if (selected) this.parentNode.appendChild(this);
+            return selected;
+          }).classed("selected1", true);
+        }
+
+        function selection2(d, ancestors) {
+          if (dragging) return;
+          var highlight = [];
+          (function recurse(d) {
+            highlight.push(d);
+            for (var k in d.children) recurse(d.children[k]);
+          })(d);
+          highlight.shift();
+
+          selectedCat2 = [];
+          dimOrder2 = [];
+          
+          if (ancestors){ 
+            highlight.push(d), d = d.parent;
+            var str = highlight[highlight.length - 1].path;
+            
+            for(const dim in dimensions){
+              dimOrder2.push(dimensions[dim].name);
+            }
+            
+            while (true){
+              if(str.includes('\u0000')){
+                selectedCat2.push(str.substring(0, str.indexOf('\u0000')));
+                str = str.substring(str.indexOf('\u0000') + 1);
+              }
+              else{
+                selectedCat2.push(str.substring(0));
+                break;
+              }
+            }
+          }
+          else{
+            dimOrder2[0] = d.dimension;
+            selectedCat2.push(d.name);
+          }
+          
+          updateBoxPlot();
+          updatePC();
+
+          ribbon.filter(function(d) {
+            var selected = highlight.indexOf(d.node) >= 0;
+            if (selected) this.parentNode.appendChild(this);
+            return selected;
+          }).classed("selected2", true);
+        }
+
         // Unhighlight all nodes.
         function unhighlight() {
           if (dragging) return;
@@ -294,6 +421,37 @@
                 event.stopPropagation();
               })
               .on("mouseout.parsets", unhighlight)
+              .on("click.parsets", function(event,d) {
+                if (dragging) return;
+                i = 0;
+                while (i < ribbon._groups[0].length){
+                  if(ribbon._groups[0][i].className.baseVal.includes("selected2")){
+                    ribbon.classed("selected1", false);
+                    ribbon.classed("selected2", false);
+                    d.nodes.forEach(function(d) {selection1(d);});
+                    break;
+                  }
+                  i = i + 1;
+                }
+                var j = 0
+                if(i == ribbon._groups[0].length){
+                  while (j < ribbon._groups[0].length){
+                    if(ribbon._groups[0][j].className.baseVal.includes("selected1")){
+                      ribbon.classed("selected2", false);
+                      d.nodes.forEach(function(d) {selection2(d);});
+                      break;
+                    }
+                    j = j + 1;
+                  }
+                }
+
+                if(j == ribbon._groups[0].length){
+                  ribbon.classed("selected1", false);
+                  ribbon.classed("selected2", false);
+                  d.nodes.forEach(function(d) {selection1(d);});
+                }
+                event.stopPropagation();
+              })
               .on("mousedown.parsets", function(event,d){cancelEvent(event)})
               .call(d3.drag()
                 .on("start", function(event,d) {

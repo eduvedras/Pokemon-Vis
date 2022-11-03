@@ -14,6 +14,8 @@
 .ribbon path { stroke-opacity: 0; fill-opacity: .4; }
 /*.ribbon path.active { fill-opacity: 1; }*/
 .ribbon path.active { fill: red; fill-opacity: 0.9; }
+.ribbon path.selected1 { fill: blue; fill-opacity: 0.9; }
+.ribbon path.selected2 { fill: yellow; fill-opacity: 0.9; }
 .ribbon-mouse path { fill-opacity: 0; }
 
 
