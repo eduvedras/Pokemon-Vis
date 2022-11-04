@@ -18,7 +18,8 @@ var selIds2 = [];
 
 var dimensionOrder = ["evolution","rarity","resistances","types","weaknesses"];
 
-var overColor = "red";
+var overColor = "#C12922";
+var mediansColor = "#7922C1"
 var normalColor = "#22BAC1";
 var selectedColor = "yellow";
 var deselectedColor = "#ddd";

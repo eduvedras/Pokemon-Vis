@@ -215,10 +215,10 @@ function createParallelCoordinates(id) {
             .attr("class", "lineValue itemValue")
             .attr("stroke", function(d){
               if(selIds1.includes(d.id)){
-                return "blue";
+                return "#226AC1";
               }
               else if(selIds2.includes(d.id)){
-                return "yellow";
+                return "#22C179";
               }
               else{
                 return normalColor;

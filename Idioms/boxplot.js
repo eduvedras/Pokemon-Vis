@@ -169,7 +169,7 @@ function placeOutlier(data,stats,width,posX,posY){
             return polygonString;
           })
           .attr("stroke-width", "5")
-          .attr("fill", "blue");      
+          .attr("fill", mediansColor);      
   
         points = svg
           .selectAll("point.pointValues")
@@ -382,7 +382,7 @@ function updateBoxPlot(){
           return polygonString;
         })
         .attr("stroke-width", "5")
-        .attr("fill", "blue");
+        .attr("fill", mediansColor);
       
   
       points = svg

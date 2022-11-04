@@ -17,7 +17,7 @@ body{
 }
 
 .wrapper{
-  max-width: 250px;
+  max-width: 200px;
   margin: 20px auto;
   position: absolute;
   right: 85%;
@@ -27,7 +27,17 @@ body{
 .button{
     position: absolute;
     right: 86%;
-    top: 9%;
+    top: 9.5%;
+}
+
+.button2{
+  position: absolute;
+  bottom:37%;
+  left:6%;
+  font-size: 22px;
+  border-width: 3px;
+  border-radius: 5%;
+  border-color: rgb(96, 93, 93);
 }
 
 .wrapper .search-input{
