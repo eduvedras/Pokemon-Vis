@@ -25,7 +25,6 @@ var selectedColor = "yellow";
 var deselectedColor = "#ddd";
 var averageColor = "green";
 var sumstat;
-
 const searchWrapper = document.querySelector(".search-input");
 const inputBox = searchWrapper.querySelector("input");
 const suggBox = searchWrapper.querySelector(".autocom-box");

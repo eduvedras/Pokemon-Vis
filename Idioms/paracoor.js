@@ -88,11 +88,6 @@ function createParallelCoordinates(id) {
           .attr("stroke", "white"))
         .call(brush);
   
-    /*path.on("mouseover", (event, d) => handleMouseOver(d))
-    .on("mouseleave", (event, d) => handleMouseLeave())
-    .append("title")
-    .text((d) => d.name)*/
-  
       const selections = new Map();
   
       function brushed({selection}, key) {

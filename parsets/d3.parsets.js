@@ -1,5 +1,3 @@
-// Parallel Sets by Jason Davies, http://www.jasondavies.com/  v4 / 5
-// Functionality based on http://eagereyes.org/parallel-sets
 (function() {
   d3.parsets = function() {
     var dispatch = d3.dispatch("sortDimensions", "sortCategories"),
@@ -11,8 +9,6 @@
         spacing = 20,
         width,
         height,
-        tension = 1,
-        tension0,
         duration = 500;
 
     function parsets(selection) {
@@ -29,25 +25,11 @@
 
         d3.select(window).on("mousemove.parsets." + ++parsetsId, unhighlight);
 
-        if (tension0 == null) tension0 = tension;
         g.selectAll(".ribbon, .ribbon-mouse")
             .data(["ribbon", "ribbon-mouse"], String)
           .enter().append("g")
             .attr("class", String);
         updateDimensions();
-        if (tension != tension0) {
-          var t = d3.transition(g);
-          if (t.tween) t.tween("ribbon", tensionTween);
-          else tensionTween()(1);
-        }
-
-        function tensionTween() {
-          var i = d3.interpolateNumber(tension0, tension);
-          return function(t) {
-            tension0 = i(t);
-            ribbon.attr("d", ribbonPath);
-          };
-        }
 
         function updateDimensions() {
           // Cache existing bound dimensions to preserve sort order.
@@ -559,12 +541,6 @@
       return parsets;
     };
 
-    parsets.tension = function(_) {
-      if (!arguments.length) return tension;
-      tension = +_;
-      return parsets;
-    };
-
     parsets.duration = function(_) {
       if (!arguments.length) return duration;
       duration = +_;
@@ -699,14 +675,14 @@
     function ribbonPath(d) {
       var s = d.source,
           t = d.target;
-      return ribbonPathString(s.node.x0 + s.x0, s.dimension.y0, s.dx, t.node.x0 + t.x0, t.dimension.y0, t.dx, tension0);
+      return ribbonPathString(s.node.x0 + s.x0, s.dimension.y0, s.dx, t.node.x0 + t.x0, t.dimension.y0, t.dx, 1);
     }
 
     // Static path string for mouse handlers.
     function ribbonPathStatic(d) {
       var s = d.source,
           t = d.target;
-      return ribbonPathString(s.node.x + s.x, s.dimension.y, s.dx, t.node.x + t.x, t.dimension.y, t.dx, tension);
+      return ribbonPathString(s.node.x + s.x, s.dimension.y, s.dx, t.node.x + t.x, t.dimension.y, t.dx, 1);
     }
 
     function ribbonPathString(sx, sy, sdx, tx, ty, tdx, tension) {

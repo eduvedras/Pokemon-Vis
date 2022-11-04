@@ -16,7 +16,6 @@ function createParallelSets(id) {
 }
 
 function updateParallelSets(){
-  console.log(dimensionOrder);
   var chart = d3.parsets()
   .dimensions(dimensionOrder)
   .width(645)
