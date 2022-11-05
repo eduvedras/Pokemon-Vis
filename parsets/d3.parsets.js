@@ -20,8 +20,7 @@
             dimensions = [],
             tree = {children: {}, count: 0},
             nodes,
-            total,
-            ribbon;
+            total;
 
         d3.select(window).on("mousemove.parsets." + ++parsetsId, unhighlight);
 
@@ -193,7 +192,7 @@
                 d.source.x0 = d.source.x;
                 d.target.x0 = d.target.x;
               })
-              .attr("class", function(d) { return "category-0"; })//return "category-" + d.major; })
+              .attr("class", function(d) { return "category-0"; })
               .attr("d", ribbonPath);
           ribbon.exit().remove();
           ribbon = ribbonEnter.merge(ribbon);
@@ -237,8 +236,6 @@
                   ribbon.classed("selected2", false);
                   selection1(d = d.node,true);
                 }
-                //ribbon.classed("selected1", false);
-                //selection1(d = d.node, true);
                 event.stopPropagation();
               })
             .merge(mouse)
@@ -495,7 +492,7 @@
           category.select("rect")
               .attr("width", function(d) { return d.dx; })
               .attr("class", function(d) {
-                return "category-0";//return "category-" + (d.dimension === dimensions[0] ? ordinal(d.name) : "background");
+                return "category-0";
               });
           category.select("line")
               .attr("x2", function(d) { return d.dx; });

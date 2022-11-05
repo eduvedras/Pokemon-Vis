@@ -15,6 +15,7 @@ var selIds1 = [];
 var selectedCat2 = [];
 var dimOrder2 = ["evolution","rarity","resistances","types","weaknesses"];
 var selIds2 = [];
+var ribbon;
 
 var dimensionOrder = ["evolution","rarity","resistances","types","weaknesses"];
 
