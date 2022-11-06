@@ -34,7 +34,7 @@
 
   <div class="wrapper">
     <div class="search-input">
-      <input type="text" placeholder="Search">
+      <input id="myInput" type="text" placeholder="Search" value="">
       <div class="autocom-box">
       </div>
     </div>
@@ -56,6 +56,7 @@
       dimOrder2 = ["evolution","rarity","resistances","types","weaknesses"];
       selIds2 = [];
       dimensionOrder = ["evolution","rarity","resistances","types","weaknesses"];
+      document.getElementById('myInput').value = '';
       
       const vi1 = document.getElementById('vi1');
       const vi2 = document.getElementById('vi2');

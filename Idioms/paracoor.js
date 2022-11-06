@@ -205,7 +205,11 @@ function createParallelCoordinates(id) {
   
       d3.select("button").on("click", function() {
         var txtName = inputBox.value;
+        var item;
         path.style("stroke", function(d) {
+          if(d.name === txtName){
+            item = d;
+          }
           return d.name === txtName ? "red" : deselectedColor;
         })
         .style("stroke-width", function(d){
@@ -214,6 +218,44 @@ function createParallelCoordinates(id) {
         points.style("fill", function(d){
           return d.name === txtName ? "red" : "none";
         })
+  
+        var i = ribbon._groups[0].length - 1;
+        var strpath;
+        var cats = [];
+  
+        while (i >= 0){
+          strpath = ribbon._groups[0][i].__data__.path;
+          while (true){
+            if(strpath.includes('\u0000')){
+              cats.push(strpath.substring(0, strpath.indexOf('\u0000')));
+              strpath = strpath.substring(strpath.indexOf('\u0000') + 1);
+            }
+            else{
+              cats.push(strpath.substring(0));
+              break;
+            }
+          }
+          if(item[dimensionOrder[0]] == cats[0] && item[dimensionOrder[1]] == cats[1] && item[dimensionOrder[2]] == cats[2] && item[dimensionOrder[3]] == cats[3] && item[dimensionOrder[4]] == cats[4]){
+            highlight(ribbon._groups[0][i].__data__);
+            function highlight(d) {
+              var highlight = [];
+              (function recurse(d) {
+                highlight.push(d);
+                for (var k in d.children) recurse(d.children[k]);
+              })(d);
+              highlight.shift();
+              while (d) highlight.push(d), d = d.parent;
+              ribbon.filter(function(d) {
+                var active = highlight.indexOf(d.node) >= 0;
+                if (active) this.parentNode.appendChild(this);
+                return active;
+              }).classed("active", true);
+            }
+            break;
+          }
+          cats = [];
+          i = i - 1;
+        }
       })
   
       //Create a brush
