@@ -224,7 +224,7 @@ function placeOutlier(data,stats,width,posX,posY){
             .attr("x2", function(d){return(width+20) })
             .attr("y1", function(d){return(y(average))})
             .attr("y2", function(d){return(y(average))})
-            .attr("stroke", averageColor)//d3.color(averageColor).copy({opacity:0.5}))
+            .attr("stroke", averageColor)
             .style("stroke-width", 1.5)
             .style("width", 80)
             .on("mouseover", (event, d) => handleMouseOverAverage(d))
